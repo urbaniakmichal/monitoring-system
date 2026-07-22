@@ -24,16 +24,10 @@ jobs:
       - name: Download Go modules
         run: go mod download
 
-      - name: Verify code formatting
-        run: |
-          if [ -n "$(gofmt -l .)" ]; then
-            echo "The following files are not formatted with gofmt:"
-            gofmt -l .
-            exit 1
-          fi
-
-      - name: Run go vet
-        run: go vet ./...
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.60
 
       - name: Run tests
         run: go test -v -race ./...
