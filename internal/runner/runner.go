@@ -3,8 +3,8 @@ package runner
 import (
 	"context"
 	"log/slog"
-	"monitor-agent/internal/config"
-	"monitor-agent/internal/metrics"
+	"monitoring-system/internal/config"
+	"monitoring-system/internal/metrics"
 	"time"
 )
 

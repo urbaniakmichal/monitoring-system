@@ -1,4 +1,4 @@
-module monitor-agent
+module monitoring-system
 
 go 1.26.4
 

@@ -3,7 +3,7 @@ package system
 import (
 	"context"
 	"errors"
-	mocks "monitor-agent/internal/testutil"
+	mocks "monitoring-system/internal/testutil"
 	"testing"
 )
 

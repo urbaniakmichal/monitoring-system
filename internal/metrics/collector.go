@@ -3,7 +3,7 @@ package metrics
 import (
 	"context"
 	"log/slog"
-	"monitor-agent/internal/system"
+	"monitoring-system/internal/system"
 	"sync"
 	"time"
 )

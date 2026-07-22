@@ -8,9 +8,9 @@ import (
 	"os/signal"
 	"syscall"
 
-	"monitor-agent/internal/config"
-	"monitor-agent/internal/metrics"
-	"monitor-agent/internal/runner"
+	"monitoring-system/internal/config"
+	"monitoring-system/internal/metrics"
+	"monitoring-system/internal/runner"
 )
 
 func main() {

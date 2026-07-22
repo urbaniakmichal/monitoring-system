@@ -2,7 +2,7 @@ package system
 
 import (
 	"context"
-	"monitor-agent/internal/platform"
+	"monitoring-system/internal/platform"
 )
 
 func Disk(ctx context.Context, provider DiskProvider) (int, error) {
