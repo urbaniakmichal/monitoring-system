@@ -1,6 +1,6 @@
 module monitoring-system
 
-go 1.26.4
+go 1.25
 
 require github.com/shirou/gopsutil/v4 v4.26.6
 

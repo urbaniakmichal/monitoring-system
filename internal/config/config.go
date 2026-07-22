@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"path/filepath"
 	"time"
 
 	"go.yaml.in/yaml/v3"
@@ -20,8 +21,9 @@ func DefaultConfig() Config {
 }
 
 func Load(path string) (*Config, error) {
+	cleanPath := filepath.Clean(path)
 
-	data, err := os.ReadFile(path)
+	data, err := os.ReadFile(cleanPath)
 	if err != nil {
 		return nil, err
 	}
