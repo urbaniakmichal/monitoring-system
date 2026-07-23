@@ -7,10 +7,9 @@ on:
     branches: [main]
 
 jobs:
-  test-and-lint:
-    name: Build & Test
+  lint:
+    name: Lint Code
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -21,13 +20,24 @@ jobs:
           go-version-file: go.mod
           cache: true
 
-      - name: Download Go modules
-        run: go mod download
-
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v9
+
+  test:
+    name: Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
         with:
-          version: v2.4.0
+          go-version-file: go.mod
+          cache: true
 
       - name: Run tests
         run: go test -v -race ./...
