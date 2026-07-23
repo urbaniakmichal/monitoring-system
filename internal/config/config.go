@@ -11,6 +11,14 @@ import (
 type Config struct {
 	Interval time.Duration `yaml:"interval"`
 	Timeout  time.Duration `yaml:"timeout"`
+	Server   ServerConfig  `yaml:"server"`
+}
+
+type ServerConfig struct {
+	Port         int           `yaml:"port"`
+	ReadTimeout  time.Duration `yaml:"read_timeout"`
+	WriteTimeout time.Duration `yaml:"write_timeout"`
+	IdleTimeout  time.Duration `yaml:"idle_timeout"`
 }
 
 func DefaultConfig() Config {
