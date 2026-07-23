@@ -23,8 +23,8 @@ jobs:
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v9
 
-  test:
-    name: Test (${{ matrix.os }})
+  test-app:
+    name: App Unit Tests (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -39,5 +39,24 @@ jobs:
           go-version-file: go.mod
           cache: true
 
-      - name: Run tests
-        run: go test -v -race ./...
+      - name: Run App Unit Tests
+        run: go test -v -race ./internal/config/... ./internal/metrics/... ./internal/platform/... ./internal/runner/... ./internal/storage/... ./internal/system/...
+
+  test-api:
+    name: API Tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Run API Tests
+        run: go test -v -race ./internal/api/...
