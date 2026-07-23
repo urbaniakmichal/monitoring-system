@@ -47,12 +47,17 @@ func main() {
 	}
 
 	ctrl := api.NewAgentController(r, ctx)
-	handler := api.NewHandler(store, ctrl, logger)
-	router := api.NewRouter(handler)
+	apiHandler := api.NewHandler(store, ctrl, logger)
+	router := api.NewRouter(apiHandler)
+
+	httpHandler := http.Handler(router)
+	httpHandler = api.Logger(httpHandler)
+	httpHandler = api.TraceID(httpHandler)
+	httpHandler = api.Recovery(httpHandler)
 
 	server := &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.Server.Port),
-		Handler:      router,
+		Handler:      httpHandler,
 		ReadTimeout:  cfg.Server.ReadTimeout,
 		WriteTimeout: cfg.Server.WriteTimeout,
 		IdleTimeout:  cfg.Server.IdleTimeout,
