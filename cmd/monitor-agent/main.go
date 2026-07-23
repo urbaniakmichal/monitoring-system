@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"log/slog"
 	"net/http"
@@ -50,10 +51,11 @@ func main() {
 	router := api.NewRouter(handler)
 
 	server := &http.Server{
-		Addr:         ":8080",
+		Addr:         fmt.Sprintf(":%d", cfg.Server.Port),
 		Handler:      router,
-		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 10 * time.Second,
+		ReadTimeout:  cfg.Server.ReadTimeout,
+		WriteTimeout: cfg.Server.WriteTimeout,
+		IdleTimeout:  cfg.Server.IdleTimeout,
 	}
 
 	ctrl.Start()
