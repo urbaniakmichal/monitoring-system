@@ -50,7 +50,7 @@ func main() {
 	apiHandler := api.NewHandler(store, ctrl, logger)
 	router := api.NewRouter(apiHandler)
 
-	var httpHandler http.Handler = router
+	httpHandler := http.Handler(router)
 	httpHandler = api.Logger(httpHandler)
 	httpHandler = api.TraceID(httpHandler)
 	httpHandler = api.Recovery(httpHandler)

@@ -5,10 +5,16 @@ import (
 	"log"
 	"net/http"
 	"runtime/debug"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
 )
+
+func sanitizeLog(s string) string {
+	s = strings.ReplaceAll(s, "\n", "")
+	return strings.ReplaceAll(s, "\r", "")
+}
 
 type responseWriterWrapper struct {
 	http.ResponseWriter
@@ -32,13 +38,15 @@ func Logger(next http.Handler) http.Handler {
 		next.ServeHTTP(wrapped, r)
 
 		duration := time.Since(start)
-		traceID := GetTraceID(r.Context())
+		cleanTraceID := sanitizeLog(GetTraceID(r.Context()))
+		cleanPath := r.URL.EscapedPath()
 
+		//nolint:gosec // G706
 		log.Printf(
 			"[HTTP] trace_id=%s | %s %s | Status: %d | Time: %v | IP: %s",
-			traceID,
+			cleanTraceID,
 			r.Method,
-			r.URL.Path,
+			cleanPath,
 			wrapped.statusCode,
 			duration,
 			r.RemoteAddr,
