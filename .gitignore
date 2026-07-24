@@ -26,10 +26,6 @@ dist/
 out/
 cmake-build-*/
 
-*.env
-*.env.*
-!.env.example
-
 *.pem
 *.key
 *.crt
