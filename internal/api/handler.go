@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"monitoring-system/internal/storage"
 	"net/http"
+	"time"
 )
 
 type Handler struct {
@@ -125,6 +126,20 @@ func (h *Handler) StopAgent(w http.ResponseWriter, r *http.Request) {
 	resp := APIResponse{
 		Data:  map[string]string{"message": "agent stopped successfully"},
 		Links: h.buildLinks(),
+	}
+	h.writeJSON(w, http.StatusOK, resp)
+}
+
+type HealthResponse struct {
+	Status    string    `json:"status"`
+	Timestamp time.Time `json:"timestamp"`
+}
+
+// GET /health
+func (h *Handler) HealthCheck(w http.ResponseWriter, r *http.Request) {
+	resp := HealthResponse{
+		Status:    "UP",
+		Timestamp: time.Now().UTC(),
 	}
 	h.writeJSON(w, http.StatusOK, resp)
 }
