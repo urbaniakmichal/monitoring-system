@@ -1,4 +1,7 @@
 services:
+  # =========================================================================
+  # Core Application
+  # =========================================================================
   monitor-system:
     build:
       context: .
@@ -11,23 +14,49 @@ services:
     environment:
       - PORT=${PORT:-8080}
     
+    # Resource constraints to enforce production stability
     deploy:
       resources:
         limits:
-          cpus: '0.25'      # Max 25% 1 CPU
-          memory: 64M       # Max 64 MB RAM
+          cpus: '0.25'      # Maximum 25% of a single CPU core
+          memory: 64M       # Maximum 64 MB of RAM
         reservations:
           cpus: '0.05'
           memory: 16M
 
+    # Log rotation to prevent filling up host disk space
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
 
+    # Container health verification via dedicated endpoint
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:${PORT:-8080}/health"]
       interval: 10s
       timeout: 3s
       retries: 3
+
+  # =========================================================================
+  # Telemetry & Monitoring Stack
+  # =========================================================================
+  
+  # Prometheus Time-Series Database
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      # Mount configuration file from host into container (read-only)
+      - ./configs/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    restart: unless-stopped
+
+  # Grafana Visualization Dashboard
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
