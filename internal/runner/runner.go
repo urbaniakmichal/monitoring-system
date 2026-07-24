@@ -55,6 +55,8 @@ func (r Runner) Start(ctx context.Context) {
 				r.Storage.Add(data)
 			}
 
+			metrics.RecordMetrics(data)
+
 			logger.Info(
 				"metrics collected",
 				"trace_id", data.TraceID,

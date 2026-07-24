@@ -13,15 +13,15 @@ services:
     restart: unless-stopped
     environment:
       - PORT=${PORT:-8080}
-    
+
     # Resource constraints to enforce production stability
     deploy:
       resources:
         limits:
-          cpus: '0.25'      # Maximum 25% of a single CPU core
-          memory: 64M       # Maximum 64 MB of RAM
+          cpus: "0.25" # Maximum 25% of a single CPU core
+          memory: 64M # Maximum 64 MB of RAM
         reservations:
-          cpus: '0.05'
+          cpus: "0.05"
           memory: 16M
 
     # Log rotation to prevent filling up host disk space
@@ -33,7 +33,15 @@ services:
 
     # Container health verification via dedicated endpoint
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:${PORT:-8080}/health"]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:${PORT:-8080}/health",
+        ]
       interval: 10s
       timeout: 3s
       retries: 3
@@ -41,7 +49,7 @@ services:
   # =========================================================================
   # Telemetry & Monitoring Stack
   # =========================================================================
-  
+
   # Prometheus Time-Series Database
   prometheus:
     image: prom/prometheus:latest
@@ -51,6 +59,8 @@ services:
     volumes:
       # Mount configuration file from host into container (read-only)
       - ./configs/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      # Persist historical metrics data across container restarts
+      - prometheus_data:/prometheus
     restart: unless-stopped
 
   # Grafana Visualization Dashboard
@@ -59,4 +69,12 @@ services:
     container_name: grafana
     ports:
       - "3000:3000"
+    volumes:
+      # Persist Grafana database, dashboards, and configurations
+      - grafana_data:/var/lib/grafana
     restart: unless-stopped
+
+# Named persistent volumes for data retention
+volumes:
+  grafana_data:
+  prometheus_data:
