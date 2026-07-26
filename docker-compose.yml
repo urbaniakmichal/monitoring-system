@@ -13,25 +13,19 @@ services:
     restart: unless-stopped
     environment:
       - PORT=${PORT:-8080}
-
-    # Resource constraints to enforce production stability
     deploy:
       resources:
         limits:
-          cpus: "0.25" # Maximum 25% of a single CPU core
-          memory: 64M # Maximum 64 MB of RAM
+          cpus: "0.25"
+          memory: 64M
         reservations:
           cpus: "0.05"
           memory: 16M
-
-    # Log rotation to prevent filling up host disk space
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
-
-    # Container health verification via dedicated endpoint
     healthcheck:
       test:
         [
@@ -47,34 +41,66 @@ services:
       retries: 3
 
   # =========================================================================
-  # Telemetry & Monitoring Stack
+  # Telemetry & Monitoring Stack (Metrics)
   # =========================================================================
-
-  # Prometheus Time-Series Database
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
     ports:
       - "9090:9090"
     volumes:
-      # Mount configuration file from host into container (read-only)
       - ./configs/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      # Persist historical metrics data across container restarts
       - prometheus_data:/prometheus
     restart: unless-stopped
 
-  # Grafana Visualization Dashboard
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
     ports:
       - "3000:3000"
     volumes:
-      # Persist Grafana database, dashboards, and configurations
       - grafana_data:/var/lib/grafana
     restart: unless-stopped
 
-# Named persistent volumes for data retention
+  # =========================================================================
+  # ELK Stack (Logs & Analytics)
+  # =========================================================================
+
+  # Elasticsearch: Distributed search and analytics engine
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.3
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  # Kibana: Visualization UI for Elasticsearch logs
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.3
+    container_name: kibana
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    volumes:
+      - kibana_data:/usr/share/kibana/data
+    restart: unless-stopped
+    depends_on:
+      - elasticsearch
+
+# Named persistent volumes for data retention across container restarts
 volumes:
   grafana_data:
   prometheus_data:
+  elasticsearch_data:
+  kibana_data:

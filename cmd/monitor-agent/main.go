@@ -14,21 +14,55 @@ import (
 
 	"monitoring-system/internal/api"
 	"monitoring-system/internal/config"
+	"monitoring-system/internal/logger"
 	"monitoring-system/internal/metrics"
 	"monitoring-system/internal/runner"
 	"monitoring-system/internal/storage"
 )
 
+var Version = "dev"
+
 func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer cancel()
 
-	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slog.LevelDebug,
-	}))
-	slog.SetDefault(logger)
+	loggerInstance := initLogger()
+	cfg := loadConfig("configs/config.yaml")
 
-	cfg, err := config.Load("configs/config.yaml")
+	store := storage.NewMemoryStorage(1000, loggerInstance)
+
+	r := runner.Runner{
+		Config:     *cfg,
+		Collectors: metrics.NewCollectors(),
+		Logger:     loggerInstance,
+		Storage:    store,
+	}
+
+	ctrl := api.NewAgentController(r, ctx)
+	server := buildHTTPServer(cfg, store, ctrl, loggerInstance)
+
+	ctrl.Start()
+	startServer(server, loggerInstance)
+
+	<-ctx.Done()
+	shutdown(server, ctrl, loggerInstance)
+}
+
+func initLogger() *slog.Logger {
+
+	logConfig := logger.Config{
+		Level:  "debug",
+		Format: "json",
+	}
+
+	log := logger.NewLogger(logConfig, os.Stdout)
+	slog.SetDefault(log)
+
+	return log
+}
+
+func loadConfig(path string) *config.Config {
+	cfg, err := config.Load(path)
 	if err != nil {
 		log.Fatalf("failed to load config: %v", err)
 	}
@@ -37,17 +71,11 @@ func main() {
 		log.Fatalf("invalid config: %v", err)
 	}
 
-	store := storage.NewMemoryStorage(1000, logger)
+	return cfg
+}
 
-	r := runner.Runner{
-		Config:     *cfg,
-		Collectors: metrics.NewCollectors(),
-		Logger:     logger,
-		Storage:    store,
-	}
-
-	ctrl := api.NewAgentController(r, ctx)
-	apiHandler := api.NewHandler(store, ctrl, logger)
+func buildHTTPServer(cfg *config.Config, store *storage.MemoryStorage, ctrl *api.AgentController, loggerInstance *slog.Logger) *http.Server {
+	apiHandler := api.NewHandler(store, ctrl, loggerInstance)
 	router := api.NewRouter(apiHandler)
 
 	httpHandler := http.Handler(router)
@@ -55,25 +83,26 @@ func main() {
 	httpHandler = api.TraceID(httpHandler)
 	httpHandler = api.Recovery(httpHandler)
 
-	server := &http.Server{
+	return &http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.Server.Port),
 		Handler:      httpHandler,
 		ReadTimeout:  cfg.Server.ReadTimeout,
 		WriteTimeout: cfg.Server.WriteTimeout,
 		IdleTimeout:  cfg.Server.IdleTimeout,
 	}
+}
 
-	ctrl.Start()
-
+func startServer(server *http.Server, loggerInstance *slog.Logger) {
 	go func() {
-		logger.Info("starting HTTP server", "addr", server.Addr)
+		loggerInstance.Info("starting HTTP server", "addr", server.Addr)
 		if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			logger.Error("HTTP server error", "error", err)
+			loggerInstance.Error("HTTP server error", "error", err)
 		}
 	}()
+}
 
-	<-ctx.Done()
-	logger.Info("shutting down agent and HTTP server...")
+func shutdown(server *http.Server, ctrl *api.AgentController, loggerInstance *slog.Logger) {
+	loggerInstance.Info("shutting down agent and HTTP server...")
 
 	ctrl.Stop()
 
@@ -81,8 +110,8 @@ func main() {
 	defer shutdownCancel()
 
 	if err := server.Shutdown(shutdownCtx); err != nil {
-		logger.Error("HTTP server forced shutdown", "error", err)
+		loggerInstance.Error("HTTP server forced shutdown", "error", err)
 	}
 
-	logger.Info("agent exited gracefully")
+	loggerInstance.Info("agent exited gracefully")
 }
