@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -17,6 +18,7 @@ import (
 	"monitoring-system/internal/logger"
 	"monitoring-system/internal/metrics"
 	"monitoring-system/internal/runner"
+	"monitoring-system/internal/software"
 	"monitoring-system/internal/storage"
 )
 
@@ -46,6 +48,30 @@ func main() {
 
 	<-ctx.Done()
 	shutdown(server, ctrl, loggerInstance)
+
+	/////////////////////////////////////////
+	// new approach below - TODO change upper code in the near future
+
+	slog.Info("----------------------------- NEW APPROACH ------------------------------------")
+	slog.Info("Starting system monitoring application...")
+
+	softwareData, collectionError := software.CollectAllSoftwareInformation()
+	if collectionError != nil {
+		slog.Error("Application failed to collect software data",
+			slog.String("error_details", collectionError.Error()),
+		)
+		return
+	}
+
+	prettyJSON, marshallingError := json.MarshalIndent(softwareData, "", "  ")
+	if marshallingError != nil {
+		slog.Error("Failed to format collected data as JSON",
+			slog.String("error_details", marshallingError.Error()),
+		)
+		return
+	}
+
+	fmt.Println(string(prettyJSON))
 }
 
 func initLogger() *slog.Logger {

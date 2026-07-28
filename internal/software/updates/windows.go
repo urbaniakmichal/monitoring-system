@@ -16,8 +16,7 @@ type SystemUpdateInformation struct {
 }
 
 func RetrieveSystemUpdates() ([]SystemUpdateInformation, error) {
-	scriptContent := "Get-CimInstance Win32_QuickFixEngineering | Select-Object HotFixID, Description, InstalledOn, InstalledBy | ConvertTo-Json"
-
+	scriptContent := "Get-CimInstance Win32_QuickFixEngineering | Select-Object HotFixID, Description, @{Name='InstalledOn';Expression={ \"$($_.InstalledOn)\" }}, InstalledBy | ConvertTo-Json"
 	executableCommand := exec.Command("powershell", "-NoProfile", "-Command", scriptContent)
 
 	var outputBuffer bytes.Buffer
