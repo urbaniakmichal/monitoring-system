@@ -27,7 +27,12 @@ func RetrieveOperatingSystemInformation() (OperatingSystemInformation, error) {
 		slog.Error("Failed to open /etc/os-release", slog.String("error_details", err.Error()))
 		return OperatingSystemInformation{}, fmt.Errorf("failed to open os-release: %w", err)
 	}
-	defer file.Close()
+
+	defer func() {
+		if err := file.Close(); err != nil {
+			slog.Error("Failed to close file", slog.String("error_details", err.Error()))
+		}
+	}()
 
 	var name, version string
 	scanner := bufio.NewScanner(file)
