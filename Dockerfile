@@ -11,9 +11,9 @@ COPY . .
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o monitor-system ./cmd/monitor-agent
 
 # --- STAGE 2
-FROM alpine:3.20
+FROM debian:bookworm-slim
 
-RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+RUN groupadd -r appgroup && useradd -r -g appgroup appuser
 
 WORKDIR /app
 
