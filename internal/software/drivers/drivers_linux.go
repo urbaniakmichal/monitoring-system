@@ -23,7 +23,12 @@ func RetrieveInstalledDrivers() ([]DriverInformation, error) {
 		slog.Error("Failed to open /proc/modules", slog.String("error_details", err.Error()))
 		return nil, fmt.Errorf("failed to read modules: %w", err)
 	}
-	defer file.Close()
+
+	defer func() {
+		if err := file.Close(); err != nil {
+			slog.Error("Failed to close file", slog.String("error_details", err.Error()))
+		}
+	}()
 
 	var drivers []DriverInformation
 	scanner := bufio.NewScanner(file)
