@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"monitoring-system/internal/api"
-	"monitoring-system/internal/storage"
+	"monitoring-system/internal/system/old/storage"
 )
 
 func TestHandler_StartAndStatusFlow(t *testing.T) {

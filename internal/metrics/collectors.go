@@ -1,6 +1,6 @@
 package metrics
 
-import "monitoring-system/internal/system"
+import system "monitoring-system/internal/system/old"
 
 type Collectors struct {
 	CPU       system.CPUProvider

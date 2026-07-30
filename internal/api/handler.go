@@ -3,7 +3,7 @@ package api
 import (
 	"encoding/json"
 	"log/slog"
-	"monitoring-system/internal/storage"
+	"monitoring-system/internal/system/old/storage"
 	"net/http"
 	"time"
 )
