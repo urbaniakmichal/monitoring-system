@@ -3,34 +3,73 @@
 package storage
 
 import (
-	"fmt"
-	"log/slog"
+	"bufio"
+	"os"
+	"strings"
 	"syscall"
 )
 
-func RetrieveStorageInfo(path string) (StorageInformation, error) {
-	var stat syscall.Statfs_t
-	err := syscall.Statfs(path, &stat)
+func RetrieveStorageInfo() ([]StorageInformation, error) {
+	file, err := os.Open("/proc/mounts")
 	if err != nil {
-		slog.Error("Failed to get storage stats", slog.String("path", path), slog.String("error_details", err.Error()))
-		return StorageInformation{}, fmt.Errorf("failed to get storage info: %w", err)
+		return nil, err
+	}
+	defer func() {
+		_ = file.Close()
+	}()
+
+	var storages []StorageInformation
+	seenPaths := make(map[string]bool)
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		fields := strings.Fields(scanner.Text())
+		if len(fields) < 3 {
+			continue
+		}
+		device := fields[0]
+		mountPath := fields[1]
+		fstype := fields[2]
+
+		if !isRealFilesystem(fstype) || seenPaths[mountPath] {
+			continue
+		}
+
+		var stat syscall.Statfs_t
+		if err := syscall.Statfs(mountPath, &stat); err != nil {
+			continue
+		}
+
+		//nolint:gosec // stat.Blocks and stat.Bsize are safe for conversion to uint64
+		totalBytes := uint64(stat.Blocks) * uint64(stat.Bsize)
+		//nolint:gosec // stat.Bavail and stat.Bsize are safe for conversion to uint64
+		freeBytes := uint64(stat.Bavail) * uint64(stat.Bsize)
+		if totalBytes == 0 {
+			continue
+		}
+
+		totalMB := totalBytes / (1024 * 1024)
+		freeMB := freeBytes / (1024 * 1024)
+		usedMB := totalMB - freeMB
+		usedPercent := (float64(usedMB) / float64(totalMB)) * 100
+
+		seenPaths[mountPath] = true
+		storages = append(storages, StorageInformation{
+			Device:      device,
+			Path:        mountPath,
+			TotalMB:     totalMB,
+			FreeMB:      freeMB,
+			UsedPercent: usedPercent,
+		})
 	}
 
-	totalBytes := stat.Blocks * uint64(stat.Bsize)
-	freeBytes := stat.Bavail * uint64(stat.Bsize)
-	totalMB := totalBytes / (1024 * 1024)
-	freeMB := freeBytes / (1024 * 1024)
-	usedMB := totalMB - freeMB
+	return storages, nil
+}
 
-	var usedPercent float64
-	if totalMB > 0 {
-		usedPercent = (float64(usedMB) / float64(totalMB)) * 100
+func isRealFilesystem(fstype string) bool {
+	allowed := map[string]bool{
+		"ext3": true, "ext4": true, "xfs": true, "btrfs": true,
+		"vfat": true, "ntfs": true, "zfs": true, "f2fs": true,
 	}
-
-	return StorageInformation{
-		Path:        path,
-		TotalMB:     totalMB,
-		FreeMB:      freeMB,
-		UsedPercent: usedPercent,
-	}, nil
+	return allowed[fstype]
 }

@@ -20,7 +20,10 @@ func RetrieveStorageInfo(driveLetter string) (StorageInformation, error) {
 
 	parts := strings.Split(strings.TrimSpace(string(output)), ",")
 	if len(parts) < 2 {
-		return StorageInformation{Path: driveLetter + ":\\"}, nil
+		return StorageInformation{
+			Device: driveLetter + ":",
+			Path:   driveLetter + ":\\",
+		}, nil
 	}
 
 	totalBytes, _ := strconv.ParseUint(strings.TrimSpace(parts[0]), 10, 64)
@@ -35,6 +38,7 @@ func RetrieveStorageInfo(driveLetter string) (StorageInformation, error) {
 	}
 
 	return StorageInformation{
+		Device:      driveLetter + ":",
 		Path:        driveLetter + ":\\",
 		TotalMB:     totalMB,
 		FreeMB:      freeMB,
