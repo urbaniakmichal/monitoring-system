@@ -7,7 +7,7 @@ import (
 	"log/slog"
 	"monitoring-system/internal/config"
 	"monitoring-system/internal/metrics"
-	"monitoring-system/internal/storage"
+	"monitoring-system/internal/system/old/storage"
 	"time"
 )
 

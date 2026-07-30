@@ -19,7 +19,7 @@ import (
 	"monitoring-system/internal/metrics"
 	"monitoring-system/internal/runner"
 	"monitoring-system/internal/software"
-	"monitoring-system/internal/storage"
+	"monitoring-system/internal/system/old/storage"
 )
 
 var Version = "dev"
