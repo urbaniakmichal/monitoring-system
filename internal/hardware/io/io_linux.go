@@ -12,7 +12,7 @@ import (
 func RetrieveIOStats() (IOStatistics, error) {
 	netStats := make(map[string]NetworkIO)
 	if file, err := os.Open("/proc/net/dev"); err == nil {
-		defer file.Close()
+		defer func() { _ = file.Close() }()
 		scanner := bufio.NewScanner(file)
 		i := 0
 		for scanner.Scan() {
@@ -37,7 +37,7 @@ func RetrieveIOStats() (IOStatistics, error) {
 
 	diskStats := make(map[string]DiskIO)
 	if file, err := os.Open("/proc/diskstats"); err == nil {
-		defer file.Close()
+		defer func() { _ = file.Close() }()
 		scanner := bufio.NewScanner(file)
 		for scanner.Scan() {
 			fields := strings.Fields(scanner.Text())
