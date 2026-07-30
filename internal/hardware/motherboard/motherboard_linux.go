@@ -8,6 +8,7 @@ import (
 )
 
 func readDMIFile(path string) string {
+	//nolint:gosec // path is a hardcoded internal system path for DMI info
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return "Unknown"
