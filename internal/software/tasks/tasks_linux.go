@@ -9,12 +9,6 @@ import (
 	"strings"
 )
 
-type ScheduledTaskInformation struct {
-	TaskName string `json:"TaskName"`
-	TaskPath string `json:"TaskPath"`
-	State    string `json:"State"`
-}
-
 func RetrieveScheduledTasks() ([]ScheduledTaskInformation, error) {
 	cmd := exec.Command("systemctl", "list-timers", "--no-legend")
 	var out bytes.Buffer

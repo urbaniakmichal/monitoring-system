@@ -10,14 +10,6 @@ import (
 	"os/exec"
 )
 
-type ServiceInformation struct {
-	Name        string `json:"Name"`
-	DisplayName string `json:"DisplayName"`
-	State       string `json:"State"`
-	StartMode   string `json:"StartMode"`
-	StartName   string `json:"StartName"`
-}
-
 func RetrieveSystemServices() ([]ServiceInformation, error) {
 	scriptContent := "Get-CimInstance Win32_Service | Select-Object Name, DisplayName, State, StartMode, StartName | ConvertTo-Json"
 

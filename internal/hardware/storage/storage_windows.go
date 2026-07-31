@@ -3,45 +3,73 @@
 package storage
 
 import (
-	"fmt"
+	"bytes"
+	"encoding/json"
 	"log/slog"
 	"os/exec"
-	"strconv"
-	"strings"
 )
 
-func RetrieveStorageInfo(driveLetter string) (StorageInformation, error) {
-	cmd := exec.Command("powershell", "-Command", fmt.Sprintf("$d = Get-CimInstance Win32_LogicalDisk -Filter \"DeviceID='%s:'\"; \"$($d.Size),$($d.FreeSpace)\"", driveLetter))
-	output, err := cmd.Output()
-	if err != nil {
+type winLogicalDisk struct {
+	DeviceID  string  `json:"DeviceID"`
+	Size      *uint64 `json:"Size"`
+	FreeSpace *uint64 `json:"FreeSpace"`
+}
+
+func RetrieveStorageInformation() ([]StorageInformation, error) {
+	cmd := exec.Command("powershell", "-NoProfile", "-Command", "Get-CimInstance Win32_LogicalDisk | Select-Object DeviceID, Size, FreeSpace | ConvertTo-Json")
+	var out bytes.Buffer
+	cmd.Stdout = &out
+
+	if err := cmd.Run(); err != nil {
 		slog.Error("Failed to get storage on Windows", slog.String("error_details", err.Error()))
-		return StorageInformation{}, err
+		return nil, err
 	}
 
-	parts := strings.Split(strings.TrimSpace(string(output)), ",")
-	if len(parts) < 2 {
-		return StorageInformation{
-			Device: driveLetter + ":",
-			Path:   driveLetter + ":\\",
-		}, nil
+	trimmed := bytes.TrimSpace(out.Bytes())
+	if len(trimmed) == 0 {
+		return []StorageInformation{}, nil
 	}
 
-	totalBytes, _ := strconv.ParseUint(strings.TrimSpace(parts[0]), 10, 64)
-	freeBytes, _ := strconv.ParseUint(strings.TrimSpace(parts[1]), 10, 64)
-
-	totalMB := totalBytes / (1024 * 1024)
-	freeMB := freeBytes / (1024 * 1024)
-	usedMB := totalMB - freeMB
-	var usedPercent float64
-	if totalMB > 0 {
-		usedPercent = (float64(usedMB) / float64(totalMB)) * 100
+	var disks []winLogicalDisk
+	if trimmed[0] == '{' {
+		var single winLogicalDisk
+		if err := json.Unmarshal(trimmed, &single); err != nil {
+			return nil, err
+		}
+		disks = []winLogicalDisk{single}
+	} else {
+		if err := json.Unmarshal(trimmed, &disks); err != nil {
+			return nil, err
+		}
 	}
 
-	return StorageInformation{
-		Device:      driveLetter + ":",
-		Path:        driveLetter + ":\\",
-		TotalMB:     totalMB,
-		FreeMB:      freeMB,
-		UsedPercent: usedPercent,
-	}, nil
+	var storages []StorageInformation
+	for _, d := range disks {
+		if d.Size == nil || *d.Size == 0 {
+			continue
+		}
+		totalBytes := *d.Size
+		var freeBytes uint64
+		if d.FreeSpace != nil {
+			freeBytes = *d.FreeSpace
+		}
+
+		totalMB := totalBytes / (1024 * 1024)
+		freeMB := freeBytes / (1024 * 1024)
+		usedMB := totalMB - freeMB
+		var usedPercent float64
+		if totalMB > 0 {
+			usedPercent = (float64(usedMB) / float64(totalMB)) * 100
+		}
+
+		storages = append(storages, StorageInformation{
+			Device:      d.DeviceID,
+			Path:        d.DeviceID + "\\",
+			TotalMB:     totalMB,
+			FreeMB:      freeMB,
+			UsedPercent: usedPercent,
+		})
+	}
+
+	return storages, nil
 }

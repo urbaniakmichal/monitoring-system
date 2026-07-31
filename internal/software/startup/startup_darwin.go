@@ -8,13 +8,6 @@ import (
 	"strings"
 )
 
-type StartupCommandInformation struct {
-	Name     string `json:"Name"`
-	Command  string `json:"Command"`
-	Location string `json:"Location"`
-	User     string `json:"User"`
-}
-
 func RetrieveStartupCommands() ([]StartupCommandInformation, error) {
 	executableCommand := exec.Command("launchctl", "print", "gui/501") // or user domain
 

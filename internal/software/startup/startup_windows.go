@@ -10,13 +10,6 @@ import (
 	"os/exec"
 )
 
-type StartupCommandInformation struct {
-	Name     string `json:"Name"`
-	Command  string `json:"Command"`
-	Location string `json:"Location"`
-	User     string `json:"User"`
-}
-
 func RetrieveStartupCommands() ([]StartupCommandInformation, error) {
 	scriptContent := "Get-CimInstance Win32_StartupCommand | Select-Object Name, Command, Location, User | ConvertTo-Json"
 

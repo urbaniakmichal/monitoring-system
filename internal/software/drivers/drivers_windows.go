@@ -10,7 +10,7 @@ import (
 	"os/exec"
 )
 
-type DriverInformation struct {
+type winDriver struct {
 	Name        string `json:"Name"`
 	DisplayName string `json:"DisplayName"`
 	State       string `json:"State"`
@@ -39,25 +39,33 @@ func RetrieveInstalledDrivers() ([]DriverInformation, error) {
 		return []DriverInformation{}, nil
 	}
 
+	var winDrivers []winDriver
 	if trimmedBytes[0] == '{' {
-		var singleDriver DriverInformation
-		decodingError := json.Unmarshal(trimmedBytes, &singleDriver)
-		if decodingError != nil {
-			slog.Error("Failed to decode single JSON driver object",
-				slog.String("error_details", decodingError.Error()),
-			)
-			return nil, fmt.Errorf("json parsing error for single driver object: %w", decodingError)
+		var single winDriver
+		if err := json.Unmarshal(trimmedBytes, &single); err != nil {
+			slog.Error("Failed to decode single JSON driver object", slog.String("error_details", err.Error()))
+			return nil, fmt.Errorf("json parsing error for single driver object: %w", err)
 		}
-		return []DriverInformation{singleDriver}, nil
+		winDrivers = []winDriver{single}
+	} else {
+		if err := json.Unmarshal(trimmedBytes, &winDrivers); err != nil {
+			slog.Error("Failed to decode JSON drivers list array", slog.String("error_details", err.Error()))
+			return nil, fmt.Errorf("json parsing error for drivers list: %w", err)
+		}
 	}
 
 	var driversList []DriverInformation
-	decodingError := json.Unmarshal(trimmedBytes, &driversList)
-	if decodingError != nil {
-		slog.Error("Failed to decode JSON drivers list array",
-			slog.String("error_details", decodingError.Error()),
-		)
-		return nil, fmt.Errorf("json parsing error for drivers list: %w", decodingError)
+	for _, wd := range winDrivers {
+		name := wd.DisplayName
+		if name == "" {
+			name = wd.Name
+		}
+		driversList = append(driversList, DriverInformation{
+			DeviceName:    name,
+			DriverVersion: wd.State,
+			Manufacturer:  wd.Status,
+			DriverName:    wd.Name,
+		})
 	}
 
 	return driversList, nil

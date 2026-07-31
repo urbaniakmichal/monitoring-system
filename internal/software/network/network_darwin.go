@@ -10,13 +10,6 @@ import (
 	"os/exec"
 )
 
-type NetworkAdapterInformation struct {
-	Description string `json:"Description"`
-	MACAddress  string `json:"MACAddress"`
-	IPAddress   string `json:"IPAddress"`
-	DHCPEnabled string `json:"DHCPEnabled"`
-}
-
 type macNetworkItem struct {
 	Name        string `json:"_name"`
 	Hardware    string `json:"hardware"`

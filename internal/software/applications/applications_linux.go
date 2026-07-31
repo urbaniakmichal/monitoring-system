@@ -9,13 +9,6 @@ import (
 	"strings"
 )
 
-type ApplicationInformation struct {
-	DisplayName    string `json:"DisplayName"`
-	DisplayVersion string `json:"DisplayVersion"`
-	Publisher      string `json:"Publisher"`
-	InstallDate    string `json:"InstallDate"`
-}
-
 func RetrieveInstalledApplications() ([]ApplicationInformation, error) {
 	// Try dpkg-query (Debian/Ubuntu)
 	cmd := exec.Command("dpkg-query", "-f=${Package}\t${Version}\t${Maintainer}\n", "-W")

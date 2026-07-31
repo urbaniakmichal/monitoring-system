@@ -1,3 +1,5 @@
+//go:build windows
+
 package updates
 
 import (
@@ -7,13 +9,6 @@ import (
 	"log/slog"
 	"os/exec"
 )
-
-type SystemUpdateInformation struct {
-	HotFixID    string `json:"HotFixID"`
-	Description string `json:"Description"`
-	InstalledOn string `json:"InstalledOn"`
-	InstalledBy string `json:"InstalledBy"`
-}
 
 func RetrieveSystemUpdates() ([]SystemUpdateInformation, error) {
 	scriptContent := "Get-CimInstance Win32_QuickFixEngineering | Select-Object HotFixID, Description, @{Name='InstalledOn';Expression={ \"$($_.InstalledOn)\" }}, InstalledBy | ConvertTo-Json"
