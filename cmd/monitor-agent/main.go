@@ -22,6 +22,7 @@ func main() {
 	// Define command-line flags
 	printMetrics := flag.Bool("print-metrics", false, "Print collected metrics JSON to console in loop mode")
 	onceFlag := flag.Bool("once", false, "Collect metrics once (on-demand) and exit")
+	outputFile := flag.String("output", "", "Path to file where metrics JSON should be saved (used with -once)")
 	flag.Parse()
 
 	// Context to handle graceful shutdown (Ctrl+C, SIGTERM)
@@ -49,14 +50,26 @@ func main() {
 			os.Exit(1)
 		}
 
-		// Output formatted JSON to stdout
+		// Format metrics to indented JSON
 		jsonData, err := json.MarshalIndent(data, "", "  ")
 		if err != nil {
 			loggerInstance.Error("failed to marshal metrics to JSON", "error", err)
 			os.Exit(1)
 		}
 
-		fmt.Println(string(jsonData))
+		// If an output file path is specified, write JSON to the file
+		if *outputFile != "" {
+			err := os.WriteFile(*outputFile, jsonData, 0644)
+			if err != nil {
+				loggerInstance.Error("failed to write metrics to file", "file", *outputFile, "error", err)
+				os.Exit(1)
+			}
+			loggerInstance.Info("successfully saved metrics to file", "file", *outputFile)
+		} else {
+			// Otherwise, print to console
+			fmt.Println(string(jsonData))
+		}
+
 		return
 	}
 
