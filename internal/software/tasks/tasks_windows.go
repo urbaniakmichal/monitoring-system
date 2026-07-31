@@ -1,3 +1,5 @@
+//go:build windows
+
 package tasks
 
 import (
@@ -7,12 +9,6 @@ import (
 	"log/slog"
 	"os/exec"
 )
-
-type ScheduledTaskInformation struct {
-	TaskName string `json:"TaskName"`
-	TaskPath string `json:"TaskPath"`
-	State    string `json:"State"`
-}
 
 func RetrieveScheduledTasks() ([]ScheduledTaskInformation, error) {
 	scriptContent := "Get-ScheduledTask | Select-Object TaskName, TaskPath, State | ConvertTo-Json"

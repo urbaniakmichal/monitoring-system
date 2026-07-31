@@ -10,18 +10,11 @@ import (
 	"os/exec"
 )
 
-type DriverInformation struct {
-	DeviceName    string `json:"DeviceName"`
-	DriverVersion string `json:"DriverVersion"`
-	Manufacturer  string `json:"Manufacturer"`
-	DriverName    string `json:"DriverName"`
-}
-
 type macExtensionItem struct {
-	Name        string `json:"_name"`
-	Version     string `json:"version"`
+	Name         string `json:"_name"`
+	Version      string `json:"version"`
 	ObtainedFrom string `json:"obtained_from"`
-	KextVersion string `json:"kext_version"`
+	KextVersion  string `json:"kext_version"`
 }
 
 type macExtensionsResponse struct {

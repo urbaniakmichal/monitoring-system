@@ -8,13 +8,6 @@ import (
 	"net"
 )
 
-type NetworkAdapterInformation struct {
-	Description string `json:"Description"`
-	MACAddress  string `json:"MACAddress"`
-	IPAddress   string `json:"IPAddress"`
-	DHCPEnabled string `json:"DHCPEnabled"`
-}
-
 func RetrieveActiveNetworkAdapters() ([]NetworkAdapterInformation, error) {
 	interfaces, err := net.Interfaces()
 	if err != nil {

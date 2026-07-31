@@ -9,13 +9,6 @@ import (
 	"strings"
 )
 
-type SystemUpdateInformation struct {
-	HotFixID    string `json:"HotFixID"`
-	Description string `json:"Description"`
-	InstalledOn string `json:"InstalledOn"`
-	InstalledBy string `json:"InstalledBy"`
-}
-
 func RetrieveSystemUpdates() ([]SystemUpdateInformation, error) {
 	executableCommand := exec.Command("softwareupdate", "--history")
 
@@ -27,7 +20,6 @@ func RetrieveSystemUpdates() ([]SystemUpdateInformation, error) {
 		slog.Error("Failed to execute softwareupdate for system updates",
 			slog.String("error_details", executionError.Error()),
 		)
-		// Return empty slice gracefully if history is unavailable or empty
 		return []SystemUpdateInformation{}, nil
 	}
 

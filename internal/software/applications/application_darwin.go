@@ -10,18 +10,11 @@ import (
 	"os/exec"
 )
 
-type ApplicationInformation struct {
-	DisplayName    string `json:"DisplayName"`
-	DisplayVersion string `json:"DisplayVersion"`
-	Publisher      string `json:"Publisher"`
-	InstallDate    string `json:"InstallDate"`
-}
-
 type macAppItem struct {
-	Name           string `json:"_name"`
-	Version        string `json:"version"`
-	ObtainedFrom   string `json:"obtained_from"`
-	LastModified   string `json:"last_modified"`
+	Name         string `json:"_name"`
+	Version      string `json:"version"`
+	ObtainedFrom string `json:"obtained_from"`
+	LastModified string `json:"last_modified"`
 }
 
 type macApplicationsResponse struct {

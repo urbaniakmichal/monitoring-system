@@ -9,13 +9,6 @@ import (
 	"strings"
 )
 
-type SystemUpdateInformation struct {
-	HotFixID    string `json:"HotFixID"`
-	Description string `json:"Description"`
-	InstalledOn string `json:"InstalledOn"`
-	InstalledBy string `json:"InstalledBy"`
-}
-
 func RetrieveSystemUpdates() ([]SystemUpdateInformation, error) {
 	cmd := exec.Command("apt", "list", "--installed")
 	var out bytes.Buffer

@@ -10,13 +10,6 @@ import (
 	"strings"
 )
 
-type DriverInformation struct {
-	DeviceName    string `json:"DeviceName"`
-	DriverVersion string `json:"DriverVersion"`
-	Manufacturer  string `json:"Manufacturer"`
-	DriverName    string `json:"DriverName"`
-}
-
 func RetrieveInstalledDrivers() ([]DriverInformation, error) {
 	file, err := os.Open("/proc/modules")
 	if err != nil {

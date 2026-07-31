@@ -4,20 +4,23 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
+	"fmt"
 	"log/slog"
+	"time"
+
 	"monitoring-system/internal/config"
 	"monitoring-system/internal/metrics"
-	"monitoring-system/internal/system/old/storage"
-	"time"
 )
 
+// Runner coordinates the metrics collection process.
 type Runner struct {
-	Config     config.Config
-	Collectors metrics.Collectors
-	Logger     *slog.Logger
-	Storage    *storage.MemoryStorage
+	Config       config.Config
+	Logger       *slog.Logger
+	PrintMetrics bool
 }
 
+// generateTraceID creates a unique trace identifier for a collection cycle.
 func generateTraceID() string {
 	bytes := make([]byte, 16)
 	if _, err := rand.Read(bytes); err != nil {
@@ -26,6 +29,25 @@ func generateTraceID() string {
 	return hex.EncodeToString(bytes)
 }
 
+// CollectOnce gathers system metrics a single time on-demand.
+func (r Runner) CollectOnce(ctx context.Context) (metrics.Metrics, error) {
+	traceID := generateTraceID()
+
+	data, err := metrics.Collect(ctx, r.Config.Timeout)
+	if err != nil {
+		return metrics.Metrics{}, err
+	}
+
+	data.TraceID = traceID
+	data.Timestamp = time.Now().UTC()
+
+	// Update metrics on Prometheus if applicable
+	metrics.RecordMetrics(data)
+
+	return data, nil
+}
+
+// Start runs the continuous metrics collection loop in the background.
 func (r Runner) Start(ctx context.Context) {
 	logger := r.Logger
 	if logger == nil {
@@ -35,7 +57,7 @@ func (r Runner) Start(ctx context.Context) {
 	ticker := time.NewTicker(r.Config.Interval)
 	defer ticker.Stop()
 
-	logger.Info("starting metrics collector", "interval", r.Config.Interval)
+	logger.Info("starting comprehensive metrics collector", "interval", r.Config.Interval, "print_metrics", r.PrintMetrics)
 
 	for {
 		select {
@@ -43,31 +65,35 @@ func (r Runner) Start(ctx context.Context) {
 			logger.Info("stopping metrics collector")
 			return
 		case <-ticker.C:
-
-			traceID := generateTraceID()
-
-			data := metrics.Collect(r.Collectors, r.Config.Timeout)
-
-			data.TraceID = traceID
-			data.Timestamp = time.Now().UTC()
-
-			if r.Storage != nil {
-				r.Storage.Add(data)
+			data, err := r.CollectOnce(ctx)
+			if err != nil {
+				logger.Error("failed to collect system metrics", "error", err)
+				continue
 			}
 
-			metrics.RecordMetrics(data)
+			hostname := data.System.System.Hostname
+			if hostname == "" {
+				hostname = "unknown"
+			}
 
 			logger.Info(
-				"metrics collected",
+				"comprehensive metrics collected successfully",
 				"trace_id", data.TraceID,
 				"timestamp", data.Timestamp,
-				"hostname", data.Hostname,
-				"cpu", data.CPU,
-				"memory", data.Memory,
-				"disk", data.Disk,
-				"uptime", data.Uptime,
-				"processes", data.Processes,
+				"hostname", hostname,
 			)
+
+			// Print metrics JSON to the console if the flag is enabled
+			if r.PrintMetrics {
+				jsonData, err := json.MarshalIndent(data, "", "  ")
+				if err == nil {
+					fmt.Println("\n=== [DEBUG] COLLECTED METRICS JSON ===")
+					fmt.Println(string(jsonData))
+					fmt.Println("======================================\n")
+				} else {
+					logger.Error("Failed to marshal metrics for console print", "error", err)
+				}
+			}
 		}
 	}
 }

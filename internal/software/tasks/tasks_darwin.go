@@ -10,12 +10,6 @@ import (
 	"strings"
 )
 
-type ScheduledTaskInformation struct {
-	TaskName string `json:"TaskName"`
-	TaskPath string `json:"TaskPath"`
-	State    string `json:"State"`
-}
-
 func RetrieveScheduledTasks() ([]ScheduledTaskInformation, error) {
 	executableCommand := exec.Command("launchctl", "list")
 

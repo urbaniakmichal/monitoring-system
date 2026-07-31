@@ -10,14 +10,6 @@ import (
 	"strings"
 )
 
-type ServiceInformation struct {
-	Name        string `json:"Name"`
-	DisplayName string `json:"DisplayName"`
-	State       string `json:"State"`
-	StartMode   string `json:"StartMode"`
-	StartName   string `json:"StartName"`
-}
-
 func RetrieveSystemServices() ([]ServiceInformation, error) {
 	cmd := exec.Command("systemctl", "list-units", "--type=service", "--no-legend", "--all")
 	var out bytes.Buffer

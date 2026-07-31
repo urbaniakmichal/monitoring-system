@@ -1,4 +1,4 @@
-//go:build linux || darwin
+//go:build linux
 
 package storage
 
@@ -9,7 +9,7 @@ import (
 	"syscall"
 )
 
-func RetrieveStorageInfo() ([]StorageInformation, error) {
+func RetrieveStorageInformation() ([]StorageInformation, error) {
 	file, err := os.Open("/proc/mounts")
 	if err != nil {
 		return nil, err
@@ -40,9 +40,7 @@ func RetrieveStorageInfo() ([]StorageInformation, error) {
 			continue
 		}
 
-		//nolint:gosec // stat.Blocks and stat.Bsize are safe for conversion to uint64
 		totalBytes := uint64(stat.Blocks) * uint64(stat.Bsize)
-		//nolint:gosec // stat.Bavail and stat.Bsize are safe for conversion to uint64
 		freeBytes := uint64(stat.Bavail) * uint64(stat.Bsize)
 		if totalBytes == 0 {
 			continue
@@ -51,7 +49,10 @@ func RetrieveStorageInfo() ([]StorageInformation, error) {
 		totalMB := totalBytes / (1024 * 1024)
 		freeMB := freeBytes / (1024 * 1024)
 		usedMB := totalMB - freeMB
-		usedPercent := (float64(usedMB) / float64(totalMB)) * 100
+		var usedPercent float64
+		if totalMB > 0 {
+			usedPercent = (float64(usedMB) / float64(totalMB)) * 100
+		}
 
 		seenPaths[mountPath] = true
 		storages = append(storages, StorageInformation{

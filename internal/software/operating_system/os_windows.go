@@ -1,6 +1,6 @@
 //go:build windows
 
-package operatingSystem
+package operatingsystem
 
 import (
 	"bytes"
@@ -9,16 +9,6 @@ import (
 	"log/slog"
 	"os/exec"
 )
-
-type OperatingSystemInformation struct {
-	Caption        string `json:"Caption"`
-	Version        string `json:"Version"`
-	BuildNumber    string `json:"BuildNumber"`
-	Manufacturer   string `json:"Manufacturer"`
-	OSArchitecture string `json:"OSArchitecture"`
-	InstallDate    string `json:"InstallDate"`
-	LastBootTime   string `json:"LastBootUpTime"`
-}
 
 func RetrieveOperatingSystemInformation() (OperatingSystemInformation, error) {
 	scriptContent := "Get-CimInstance Win32_OperatingSystem | Select-Object Caption, Version, BuildNumber, Manufacturer, OSArchitecture, InstallDate, LastBootUpTime | ConvertTo-Json"
