@@ -83,13 +83,13 @@ func (r Runner) Start(ctx context.Context) {
 				"hostname", hostname,
 			)
 
-			// Print metrics JSON to the console if the flag is enabled
+			// Print metrics JSON to the console if the flag is enabled e.g.  go run .\cmd\monitor-agent\main.go -once -print-metrics=true -output metrics.txt
 			if r.PrintMetrics {
 				jsonData, err := json.MarshalIndent(data, "", "  ")
 				if err == nil {
-					fmt.Println("\n=== [DEBUG] COLLECTED METRICS JSON ===")
+					fmt.Println("\n=== [DEBUG] COLLECTED METRICS JSON START ===")
 					fmt.Println(string(jsonData))
-					fmt.Println("======================================\n")
+					fmt.Println("\n=== [DEBUG] COLLECTED METRICS JSON END ===")
 				} else {
 					logger.Error("Failed to marshal metrics for console print", "error", err)
 				}
