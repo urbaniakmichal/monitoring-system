@@ -14,6 +14,7 @@ type winDriver struct {
 	Name        string `json:"Name"`
 	DisplayName string `json:"DisplayName"`
 	State       string `json:"State"`
+	
 	Status      string `json:"Status"`
 	StartMode   string `json:"StartMode"`
 }
