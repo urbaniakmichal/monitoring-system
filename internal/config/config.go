@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"go.yaml.in/yaml/v3"
+	"gopkg.in/yaml.v3"
 )
 
 type Config struct {

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log/slog"
 	"os/exec"
+	"strconv"
 	"strings"
 )
 
@@ -35,10 +36,18 @@ func RetrieveScheduledTasks() ([]ScheduledTaskInformation, error) {
 		}
 		fields := strings.Fields(line)
 		if len(fields) >= 3 {
+			// fields[0] as usually PID
+			stateVal := 0
+			if fields[0] != "-" {
+				if parsedPid, err := strconv.Atoi(fields[0]); err == nil {
+					stateVal = parsedPid
+				}
+			}
+
 			tasksList = append(tasksList, ScheduledTaskInformation{
 				TaskName: fields[2],
 				TaskPath: "/Library/LaunchAgents",
-				State:    fields[0],
+				State:    stateVal,
 			})
 		}
 	}

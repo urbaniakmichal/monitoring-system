@@ -6,3 +6,11 @@ type DriverInformation struct {
 	Manufacturer  string `json:"Manufacturer"`
 	DriverName    string `json:"DriverName"`
 }
+
+type Drivers interface {
+	RetrieveInstalledDrivers() ([]DriverInformation, error)
+}
+
+type SoftwareDrivers struct{}
+
+var _ Drivers = (*SoftwareDrivers)(nil)

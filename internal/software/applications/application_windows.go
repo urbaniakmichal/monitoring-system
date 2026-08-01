@@ -10,7 +10,7 @@ import (
 	"os/exec"
 )
 
-func RetrieveInstalledApplications() ([]ApplicationInformation, error) {
+func (*SoftwareApplications) RetrieveInstalledApplications() ([]ApplicationInformation, error) {
 	scriptContent := "$paths = @('HKLM:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*', 'HKLM:\\Software\\Wow6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\*'); Get-ItemProperty -Path $paths -ErrorAction SilentlyContinue | Where-Object { $_.DisplayName -ne $null } | Select-Object DisplayName, DisplayVersion, Publisher, @{Name='InstallDate';Expression={ \"$($_.InstallDate)\" }} | Sort-Object DisplayName -Unique | ConvertTo-Json"
 
 	executableCommand := exec.Command("powershell", "-NoProfile", "-Command", scriptContent)

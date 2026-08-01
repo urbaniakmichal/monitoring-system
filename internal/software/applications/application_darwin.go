@@ -21,7 +21,7 @@ type macApplicationsResponse struct {
 	SPApplicationsDataType []macAppItem `json:"SPApplicationsDataType"`
 }
 
-func RetrieveInstalledApplications() ([]ApplicationInformation, error) {
+func (*SoftwareApplications) RetrieveInstalledApplications() ([]ApplicationInformation, error) {
 	executableCommand := exec.Command("system_profiler", "SPApplicationsDataType", "-json")
 
 	var outputBuffer bytes.Buffer

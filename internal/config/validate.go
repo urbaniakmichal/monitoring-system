@@ -6,7 +6,6 @@ import (
 )
 
 func (c Config) Validate() error {
-
 	if c.Interval <= 0 {
 		return errors.New("interval must be greater than zero")
 	}

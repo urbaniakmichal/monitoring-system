@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func RetrieveInstalledApplications() ([]ApplicationInformation, error) {
+func (*SoftwareApplications) RetrieveInstalledApplications() ([]ApplicationInformation, error) {
 	// Try dpkg-query (Debian/Ubuntu)
 	cmd := exec.Command("dpkg-query", "-f=${Package}\t${Version}\t${Maintainer}\n", "-W")
 	var out bytes.Buffer

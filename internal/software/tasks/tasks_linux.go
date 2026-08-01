@@ -32,7 +32,7 @@ func RetrieveScheduledTasks() ([]ScheduledTaskInformation, error) {
 			tasks = append(tasks, ScheduledTaskInformation{
 				TaskName: timerName,
 				TaskPath: "/etc/systemd/system",
-				State:    "active",
+				State:    1, // 1 as active timer
 			})
 		}
 	}

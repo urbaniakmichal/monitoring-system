@@ -18,7 +18,7 @@ type winDriver struct {
 	StartMode   string `json:"StartMode"`
 }
 
-func RetrieveInstalledDrivers() ([]DriverInformation, error) {
+func (*SoftwareDrivers) RetrieveInstalledDrivers() ([]DriverInformation, error) {
 	scriptContent := "Get-CimInstance Win32_SystemDriver | Select-Object Name, DisplayName, State, Status, StartMode | ConvertTo-Json"
 
 	executableCommand := exec.Command("powershell", "-NoProfile", "-Command", scriptContent)
