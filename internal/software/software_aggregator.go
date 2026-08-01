@@ -76,7 +76,10 @@ func CollectAllSoftwareInformation() (CompleteSoftwareInformation, error) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		res, err := drivers.RetrieveInstalledDrivers()
+
+		driversApps := &drivers.SoftwareDrivers{}
+		res, err := driversApps.RetrieveInstalledDrivers()
+
 		if err != nil {
 			slog.Error("Failed to collect system drivers during aggregation", slog.String("error_details", err.Error()))
 			setError(fmt.Errorf("failed to collect system drivers: %w", err))
@@ -106,7 +109,10 @@ func CollectAllSoftwareInformation() (CompleteSoftwareInformation, error) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		res, err := applications.RetrieveInstalledApplications()
+
+		osApps := &applications.SoftwareApplications{}
+		res, err := osApps.RetrieveInstalledApplications()
+
 		if err != nil {
 			slog.Error("Failed to collect installed applications during aggregation", slog.String("error_details", err.Error()))
 			setError(fmt.Errorf("failed to collect installed applications: %w", err))

@@ -21,7 +21,7 @@ type macExtensionsResponse struct {
 	SPExtensionsDataType []macExtensionItem `json:"SPExtensionsDataType"`
 }
 
-func RetrieveInstalledDrivers() ([]DriverInformation, error) {
+func (*SoftwareDrivers) RetrieveInstalledDrivers() ([]DriverInformation, error) {
 	executableCommand := exec.Command("system_profiler", "SPExtensionsDataType", "-json")
 
 	var outputBuffer bytes.Buffer

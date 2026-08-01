@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-func RetrieveInstalledDrivers() ([]DriverInformation, error) {
+func (*SoftwareDrivers) RetrieveInstalledDrivers() ([]DriverInformation, error) {
 	file, err := os.Open("/proc/modules")
 	if err != nil {
 		slog.Error("Failed to open /proc/modules", slog.String("error_details", err.Error()))
