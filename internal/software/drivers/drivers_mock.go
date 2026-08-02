@@ -1,7 +1,7 @@
 package drivers
 
 type MockDrivers struct {
-	AppsToReturn []DriverInformation
+	DataToReturn []DriverInformation
 	MockError    error
 }
 
@@ -12,7 +12,7 @@ func (mock *MockDrivers) RetrieveInstalledDrivers() ([]DriverInformation, error)
 		return nil, mock.MockError
 	}
 
-	if mock.AppsToReturn == nil {
+	if mock.DataToReturn == nil {
 		return []DriverInformation{
 			{
 				DeviceName:    "DeviceName",
@@ -23,5 +23,5 @@ func (mock *MockDrivers) RetrieveInstalledDrivers() ([]DriverInformation, error)
 		}, nil
 	}
 
-	return mock.AppsToReturn, nil
+	return mock.DataToReturn, nil
 }

@@ -1,7 +1,7 @@
 package applications
 
 type MockApplications struct {
-	AppsToReturn []ApplicationInformation
+	DataToReturn []ApplicationInformation
 	MockError    error
 }
 
@@ -12,7 +12,7 @@ func (mock *MockApplications) RetrieveInstalledApplications() ([]ApplicationInfo
 		return nil, mock.MockError
 	}
 
-	if mock.AppsToReturn == nil {
+	if mock.DataToReturn == nil {
 		return []ApplicationInformation{
 			{
 				DisplayName:    "Mock display name",
@@ -23,5 +23,5 @@ func (mock *MockApplications) RetrieveInstalledApplications() ([]ApplicationInfo
 		}, nil
 	}
 
-	return mock.AppsToReturn, nil
+	return mock.DataToReturn, nil
 }

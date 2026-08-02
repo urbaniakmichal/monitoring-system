@@ -1,6 +1,6 @@
 //go:build linux
 
-package operatingsystem
+package operating_system
 
 import (
 	"bufio"
@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-func RetrieveOperatingSystemInformation() (OperatingSystemInformation, error) {
+func (*SoftwareOperatingSystem)RetrieveOperatingSystemInformation() (OperatingSystemInformation, error) {
 	file, err := os.Open("/etc/os-release")
 	if err != nil {
 		slog.Error("Failed to open /etc/os-release", slog.String("error_details", err.Error()))
@@ -34,6 +34,8 @@ func RetrieveOperatingSystemInformation() (OperatingSystemInformation, error) {
 			version = strings.Trim(strings.TrimPrefix(line, "VERSION_ID="), "\"")
 		}
 	}
+	if err := scanner.Err(); err != nil {
+    	slog.Error("Failed to scan file", slog.String("file name", file.Name()), slog.String("error_details", err.Error()))}
 
 	archCmd := exec.Command("uname", "-m")
 	archOut, _ := archCmd.Output()

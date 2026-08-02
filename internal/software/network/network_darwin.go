@@ -21,7 +21,7 @@ type macNetworkResponse struct {
 	SPNetworkDataType []macNetworkItem `json:"SPNetworkDataType"`
 }
 
-func RetrieveActiveNetworkAdapters() ([]NetworkAdapterInformation, error) {
+func (*SoftwareNetworks)RetrieveActiveNetworkAdapters() ([]NetworkAdapterInformation, error) {
 	executableCommand := exec.Command("system_profiler", "SPNetworkDataType", "-json")
 
 	var outputBuffer bytes.Buffer

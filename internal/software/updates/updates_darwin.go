@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func RetrieveSystemUpdates() ([]SystemUpdateInformation, error) {
+func (*SoftwareUpdates)RetrieveSystemUpdates() ([]SystemUpdateInformation, error) {
 	executableCommand := exec.Command("softwareupdate", "--history")
 
 	var outputBuffer bytes.Buffer

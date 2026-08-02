@@ -10,7 +10,7 @@ import (
 	"os/exec"
 )
 
-func RetrieveSystemServices() ([]ServiceInformation, error) {
+func (*SoftwareServices)RetrieveSystemServices() ([]ServiceInformation, error) {
 	scriptContent := "Get-CimInstance Win32_Service | Select-Object Name, DisplayName, State, StartMode, StartName | ConvertTo-Json"
 
 	executableCommand := exec.Command("powershell", "-NoProfile", "-Command", scriptContent)

@@ -8,7 +8,7 @@ import (
 	"net"
 )
 
-func RetrieveActiveNetworkAdapters() ([]NetworkAdapterInformation, error) {
+func (*SoftwareNetworks)RetrieveActiveNetworkAdapters() ([]NetworkAdapterInformation, error) {
 	interfaces, err := net.Interfaces()
 	if err != nil {
 		slog.Error("Failed to get network interfaces", slog.String("error_details", err.Error()))

@@ -1,6 +1,6 @@
 //go:build windows
 
-package operatingsystem
+package operating_system
 
 import (
 	"bytes"
@@ -10,7 +10,7 @@ import (
 	"os/exec"
 )
 
-func RetrieveOperatingSystemInformation() (OperatingSystemInformation, error) {
+func (*SoftwareOperatingSystem)RetrieveOperatingSystemInformation() (OperatingSystemInformation, error) {
 	scriptContent := "Get-CimInstance Win32_OperatingSystem | Select-Object Caption, Version, BuildNumber, Manufacturer, OSArchitecture, InstallDate, LastBootUpTime | ConvertTo-Json"
 
 	executableCommand := exec.Command("powershell", "-NoProfile", "-Command", scriptContent)

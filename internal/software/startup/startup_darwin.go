@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func RetrieveStartupCommands() ([]StartupCommandInformation, error) {
+func (*SoftwareStartup)RetrieveStartupCommands() ([]StartupCommandInformation, error) {
 	executableCommand := exec.Command("launchctl", "print", "gui/501") // or user domain
 
 	var outputBuffer bytes.Buffer

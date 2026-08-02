@@ -7,3 +7,11 @@ type NetworkAdapterInformation struct {
 	MACAddress  string `json:"MACAddress"`
 	DHCPEnabled string `json:"DHCPEnabled"`
 }
+
+type Networks interface {
+	RetrieveActiveNetworkAdapters() ([]NetworkAdapterInformation, error)
+}
+
+type SoftwareNetworks struct{}
+
+var _ Networks = (*SoftwareNetworks)(nil)

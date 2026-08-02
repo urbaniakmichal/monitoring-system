@@ -6,3 +6,11 @@ type SystemUpdateInformation struct {
 	InstalledOn string `json:"InstalledOn"`
 	InstalledBy string `json:"InstalledBy"`
 }
+
+type Updates interface {
+	RetrieveSystemUpdates() ([]SystemUpdateInformation, error)
+}
+
+type SoftwareUpdates struct{}
+
+var _ Updates = (*SoftwareUpdates)(nil)

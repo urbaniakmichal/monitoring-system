@@ -10,7 +10,7 @@ import (
 	"os/exec"
 )
 
-func RetrieveSystemUpdates() ([]SystemUpdateInformation, error) {
+func (*SoftwareUpdates)RetrieveSystemUpdates() ([]SystemUpdateInformation, error) {
 	scriptContent := "Get-CimInstance Win32_QuickFixEngineering | Select-Object HotFixID, Description, @{Name='InstalledOn';Expression={ \"$($_.InstalledOn)\" }}, InstalledBy | ConvertTo-Json"
 	executableCommand := exec.Command("powershell", "-NoProfile", "-Command", scriptContent)
 

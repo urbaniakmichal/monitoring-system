@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-func RetrieveSystemServices() ([]ServiceInformation, error) {
+func (*SoftwareServices)RetrieveSystemServices() ([]ServiceInformation, error) {
 	executableCommand := exec.Command("launchctl", "list")
 
 	var outputBuffer bytes.Buffer
