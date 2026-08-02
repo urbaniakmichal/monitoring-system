@@ -40,7 +40,9 @@ func RetrieveStorageInformation() ([]StorageInformation, error) {
 			continue
 		}
 
+		// #nosec G115
 		totalBytes := uint64(stat.Blocks) * uint64(stat.Bsize)
+		// #nosec G115
 		freeBytes := uint64(stat.Bavail) * uint64(stat.Bsize)
 		if totalBytes == 0 {
 			continue
