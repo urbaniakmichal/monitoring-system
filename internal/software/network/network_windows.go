@@ -19,7 +19,7 @@ type winNetworkAdapter struct {
 	DHCPEnabled bool     `json:"DHCPEnabled"`
 }
 
-func RetrieveActiveNetworkAdapters() ([]NetworkAdapterInformation, error) {
+func (*SoftwareNetworks)RetrieveActiveNetworkAdapters() ([]NetworkAdapterInformation, error) {
 	scriptContent := "Get-CimInstance Win32_NetworkAdapterConfiguration -Filter \"IPEnabled = True\" | Select-Object Caption, Description, IPAddress, MACAddress, DHCPEnabled | ConvertTo-Json"
 
 	executableCommand := exec.Command("powershell", "-NoProfile", "-Command", scriptContent)

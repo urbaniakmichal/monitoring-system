@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-func RetrieveScheduledTasks() ([]ScheduledTaskInformation, error) {
+func (*SoftwareTasks)RetrieveScheduledTasks() ([]ScheduledTaskInformation, error) {
 	executableCommand := exec.Command("launchctl", "list")
 
 	var outputBuffer bytes.Buffer

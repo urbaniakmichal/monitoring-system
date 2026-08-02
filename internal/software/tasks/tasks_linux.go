@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func RetrieveScheduledTasks() ([]ScheduledTaskInformation, error) {
+func (*SoftwareTasks)RetrieveScheduledTasks() ([]ScheduledTaskInformation, error) {
 	cmd := exec.Command("systemctl", "list-timers", "--no-legend")
 	var out bytes.Buffer
 	cmd.Stdout = &out

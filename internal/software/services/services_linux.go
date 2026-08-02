@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-func RetrieveSystemServices() ([]ServiceInformation, error) {
+func (*SoftwareServices)RetrieveSystemServices() ([]ServiceInformation, error) {
 	cmd := exec.Command("systemctl", "list-units", "--type=service", "--no-legend", "--all")
 	var out bytes.Buffer
 	cmd.Stdout = &out

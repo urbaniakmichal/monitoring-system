@@ -9,7 +9,7 @@ import (
 
 func TestApplications_MockSuccess(t *testing.T) {
 	mockApp := &MockApplications{
-		AppsToReturn: []ApplicationInformation{
+		DataToReturn: []ApplicationInformation{
 			{
 				DisplayName:    "Mock display name",
 				DisplayVersion: "Mock display version",

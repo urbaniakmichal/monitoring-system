@@ -6,3 +6,11 @@ type StartupCommandInformation struct {
 	Location string `json:"Location"`
 	User     string `json:"User"`
 }
+
+type Startup interface {
+	RetrieveStartupCommands() ([]StartupCommandInformation, error)
+}
+
+type SoftwareStartup struct{}
+
+var _ Startup = (*SoftwareStartup)(nil)

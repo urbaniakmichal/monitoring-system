@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func RetrieveSystemUpdates() ([]SystemUpdateInformation, error) {
+func (*SoftwareUpdates)RetrieveSystemUpdates() ([]SystemUpdateInformation, error) {
 	cmd := exec.Command("apt", "list", "--installed")
 	var out bytes.Buffer
 	cmd.Stdout = &out

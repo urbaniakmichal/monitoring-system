@@ -10,7 +10,7 @@ import (
 	"os/exec"
 )
 
-func RetrieveStartupCommands() ([]StartupCommandInformation, error) {
+func (*SoftwareStartup)RetrieveStartupCommands() ([]StartupCommandInformation, error) {
 	scriptContent := "Get-CimInstance Win32_StartupCommand | Select-Object Name, Command, Location, User | ConvertTo-Json"
 
 	executableCommand := exec.Command("powershell", "-NoProfile", "-Command", scriptContent)

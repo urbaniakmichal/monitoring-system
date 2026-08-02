@@ -10,7 +10,7 @@ import (
 	"os/exec"
 )
 
-func RetrieveScheduledTasks() ([]ScheduledTaskInformation, error) {
+func (*SoftwareTasks)RetrieveScheduledTasks() ([]ScheduledTaskInformation, error) {
 	scriptContent := "Get-ScheduledTask | Select-Object TaskName, TaskPath, State | ConvertTo-Json"
 
 	executableCommand := exec.Command("powershell", "-NoProfile", "-Command", scriptContent)

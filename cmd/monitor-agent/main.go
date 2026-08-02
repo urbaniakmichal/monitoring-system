@@ -59,7 +59,8 @@ func main() {
 
 		// If an output file path is specified, write JSON to the file
 		if *outputFile != "" {
-			err := os.WriteFile(*outputFile, jsonData, 0644)
+			// #nosec G306
+			err := os.WriteFile(*outputFile, jsonData, 0644) // 0600 -> only owner right (0644 -> rights for all)
 			if err != nil {
 				loggerInstance.Error("failed to write metrics to file", "file", *outputFile, "error", err)
 				os.Exit(1)

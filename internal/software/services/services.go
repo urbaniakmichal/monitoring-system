@@ -7,3 +7,11 @@ type ServiceInformation struct {
 	StartMode   string `json:"StartMode"`
 	StartName   string `json:"StartName"`
 }
+
+type Services interface {
+	RetrieveSystemServices() ([]ServiceInformation, error)
+}
+
+type SoftwareServices struct{}
+
+var _ Services = (*SoftwareServices)(nil)

@@ -9,7 +9,7 @@ import (
 
 func TestDrivers_MockSuccess(t *testing.T) {
 	mockDriver := &MockDrivers{
-		AppsToReturn: []DriverInformation{
+		DataToReturn: []DriverInformation{
 			{
 				DeviceName:    "DeviceName",
 				DriverVersion: "DriverVersion",

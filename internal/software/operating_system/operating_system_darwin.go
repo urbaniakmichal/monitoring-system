@@ -1,6 +1,6 @@
 //go:build darwin
 
-package operatingsystem
+package operating_system
 
 import (
 	"bytes"
@@ -20,7 +20,7 @@ type macSystemProfilerResponse struct {
 	} `json:"SPSoftwareDataType"`
 }
 
-func RetrieveOperatingSystemInformation() (OperatingSystemInformation, error) {
+func (*SoftwareOperatingSystem)RetrieveOperatingSystemInformation() (OperatingSystemInformation, error) {
 	executableCommand := exec.Command("system_profiler", "SPSoftwareDataType", "-json")
 
 	var outputBuffer bytes.Buffer

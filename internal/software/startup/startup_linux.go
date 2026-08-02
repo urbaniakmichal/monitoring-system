@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func RetrieveStartupCommands() ([]StartupCommandInformation, error) {
+func (*SoftwareStartup)RetrieveStartupCommands() ([]StartupCommandInformation, error) {
 	autostartDir := "/etc/xdg/autostart"
 	var startups []StartupCommandInformation
 

@@ -9,6 +9,7 @@ import (
 
 func RetrieveBiosInformation() (BiosInformation, error) {
 	readDmi := func(filename string) string {
+		//#nosec G304
 		data, err := os.ReadFile("/sys/class/dmi/id/" + filename)
 		if err != nil {
 			return "Unknown"

@@ -1,4 +1,4 @@
-package operatingsystem
+package operating_system
 
 type OperatingSystemInformation struct {
 	Caption        string `json:"Caption"`
@@ -9,3 +9,11 @@ type OperatingSystemInformation struct {
 	InstallDate    string `json:"InstallDate"`
 	LastBootTime   string `json:"LastBootUpTime"`
 }
+
+type OperatingSystem interface {
+	RetrieveOperatingSystemInformation() (OperatingSystemInformation, error)
+}
+
+type SoftwareOperatingSystem struct{}
+
+var _ OperatingSystem = (*SoftwareOperatingSystem)(nil)
