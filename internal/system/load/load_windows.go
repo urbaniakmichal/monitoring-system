@@ -11,7 +11,7 @@ type winCPU struct {
 	LoadPercentage *uint32 `json:"LoadPercentage"`
 }
 
-func RetrieveLoadInfo() (LoadInformation, error) {
+func (*Load)RetrieveLoadInfo() (LoadInformation, error) {
 	cmd := exec.Command("powershell", "-Command", "Get-CimInstance Win32_Processor | Select-Object LoadPercentage | ConvertTo-Json")
 	output, err := cmd.Output()
 	if err != nil {

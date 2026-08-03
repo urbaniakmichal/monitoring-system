@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func RetrieveLoadInfo() (LoadInformation, error) {
+func (*Load)RetrieveLoadInfo() (LoadInformation, error) {
 	cmd := exec.Command("sysctl", "-n", "vm.loadavg")
 	output, err := cmd.Output()
 	if err != nil {

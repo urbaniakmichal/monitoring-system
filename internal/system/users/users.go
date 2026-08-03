@@ -5,3 +5,11 @@ type UserInformation struct {
 	Terminal string `json:"Terminal"`
 	Host     string `json:"Host"`
 }
+
+type User interface {
+	RetrieveUsersInfo() ([]UserInformation, error)
+}
+
+type SystemUsers struct{}
+
+var _ User = (*SystemUsers)(nil)

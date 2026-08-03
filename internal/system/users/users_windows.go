@@ -6,7 +6,7 @@ import (
 	"os/user"
 )
 
-func RetrieveUsersInfo() ([]UserInformation, error) {
+func (*SystemUsers)RetrieveUsersInfo() ([]UserInformation, error) {
 	curr, err := user.Current()
 	if err != nil {
 		return nil, err
