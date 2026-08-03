@@ -36,7 +36,10 @@ func CollectAllSystemInformation() (CompleteSystemInformation, error) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
+
+		system := system.SystemOsInfo{}
 		res, err := system.RetrieveSystemInfo()
+
 		if err != nil {
 			slog.Error("Failed to collect system info during aggregation", slog.String("error_details", err.Error()))
 			setError(fmt.Errorf("failed to collect system info: %w", err))
@@ -51,7 +54,10 @@ func CollectAllSystemInformation() (CompleteSystemInformation, error) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
+
+		load := load.Load{}
 		res, err := load.RetrieveLoadInfo()
+
 		if err != nil {
 			slog.Error("Failed to collect load info during aggregation", slog.String("error_details", err.Error()))
 			setError(fmt.Errorf("failed to collect load info: %w", err))
@@ -66,7 +72,10 @@ func CollectAllSystemInformation() (CompleteSystemInformation, error) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
+
+		users := users.SystemUsers{}
 		res, err := users.RetrieveUsersInfo()
+
 		if err != nil {
 			slog.Error("Failed to collect users info during aggregation", slog.String("error_details", err.Error()))
 			setError(fmt.Errorf("failed to collect users info: %w", err))

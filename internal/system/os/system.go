@@ -14,3 +14,11 @@ type SystemInformation struct {
 	Uptime       string               `json:"Uptime"`
 	TopProcesses []ProcessInformation `json:"TopProcesses"`
 }
+
+type System interface {
+	RetrieveSystemInfo() (SystemInformation, error)
+}
+
+type SystemOsInfo struct{}
+
+var _ System = (*SystemOsInfo)(nil)

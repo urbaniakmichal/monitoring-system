@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func RetrieveUsersInfo() ([]UserInformation, error) {
+func (*SystemUsers)RetrieveUsersInfo() ([]UserInformation, error) {
 	cmd := exec.Command("who")
 	output, err := cmd.Output()
 	if err != nil {

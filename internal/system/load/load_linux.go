@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func RetrieveLoadInfo() (LoadInformation, error) {
+func (*Load)RetrieveLoadInfo() (LoadInformation, error) {
 	data, err := os.ReadFile("/proc/loadavg")
 	if err != nil {
 		return LoadInformation{}, err

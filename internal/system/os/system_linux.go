@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-func RetrieveSystemInfo() (SystemInformation, error) {
+func (*SystemOsInfo)RetrieveSystemInfo() (SystemInformation, error) {
 	hostname, err := os.Hostname()
 	if err != nil {
 		hostname = "unknown"

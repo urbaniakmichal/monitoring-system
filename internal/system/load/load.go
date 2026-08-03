@@ -5,3 +5,11 @@ type LoadInformation struct {
 	Load5  float64 `json:"Load5"`
 	Load15 float64 `json:"Load15"`
 }
+
+type SystemLoad interface {
+	RetrieveLoadInfo() (LoadInformation, error)
+}
+
+type Load struct{}
+
+var _ SystemLoad = (*Load)(nil)
