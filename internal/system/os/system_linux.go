@@ -23,7 +23,7 @@ func (*SystemOsInfo)RetrieveSystemInfo() (SystemInformation, error) {
 		uptime = uptimeStr[0] + " seconds"
 	}
 
-	var topProcs []ProcessInformation
+	var processes []ProcessInformation
 	cmd := exec.Command("ps", "-eo", "pid,comm,%cpu,%mem", "--sort=-%cpu", "h")
 	if output, err := cmd.Output(); err == nil {
 		lines := strings.Split(string(bytes.TrimSpace(output)), "\n")
@@ -36,7 +36,7 @@ func (*SystemOsInfo)RetrieveSystemInfo() (SystemInformation, error) {
 				continue
 			}
 
-			topProcs = append(topProcs, ProcessInformation{
+			processes = append(processes, ProcessInformation{
 				Name: fields[1],
 			})
 		}
@@ -47,6 +47,6 @@ func (*SystemOsInfo)RetrieveSystemInfo() (SystemInformation, error) {
 		OS:           runtime.GOOS,
 		Architecture: runtime.GOARCH,
 		Uptime:       uptime,
-		TopProcesses: topProcs,
+		TopProcesses: processes,
 	}, nil
 }

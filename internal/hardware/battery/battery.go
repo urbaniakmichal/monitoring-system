@@ -6,3 +6,11 @@ type BatteryInformation struct {
 	IsCharging bool    `json:"IsCharging"`
 	Status     string  `json:"Status"`
 }
+
+type Battery interface {
+	RetrieveBatteryInfo() ([]BatteryInformation, error)
+}
+
+type HardwareBattery struct{}
+
+var _ Battery = (*HardwareBattery)(nil)
