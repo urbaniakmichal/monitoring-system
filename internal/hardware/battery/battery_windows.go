@@ -13,7 +13,7 @@ type winBattery struct {
 	BatteryStatus            uint   `json:"BatteryStatus"`
 }
 
-func RetrieveBatteryInfo() ([]BatteryInformation, error) {
+func  (*HardwareBattery)RetrieveBatteryInfo() ([]BatteryInformation, error) {
 	cmd := exec.Command("powershell", "-Command", "Get-CimInstance Win32_Battery | Select-Object Name, EstimatedChargeRemaining, BatteryStatus | ConvertTo-Json")
 	output, err := cmd.Output()
 	if err != nil {

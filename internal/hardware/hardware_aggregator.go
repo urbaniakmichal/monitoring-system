@@ -52,7 +52,10 @@ func CollectAllHardwareInformation() (CompleteHardwareInformation, error) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
+
+		battery := battery.HardwareBattery{}
 		res, err := battery.RetrieveBatteryInfo()
+
 		if err != nil {
 			slog.Error("Failed to collect battery info during aggregation", slog.String("error_details", err.Error()))
 			setError(fmt.Errorf("failed to collect battery info: %w", err))

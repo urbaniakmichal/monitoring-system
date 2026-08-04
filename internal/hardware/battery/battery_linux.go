@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func RetrieveBatteryInfo() ([]BatteryInformation, error) {
+func  (*HardwareBattery)RetrieveBatteryInfo() ([]BatteryInformation, error) {
 	var batteries []BatteryInformation
 	matches, err := filepath.Glob("/sys/class/power_supply/BAT*")
 	if err != nil {

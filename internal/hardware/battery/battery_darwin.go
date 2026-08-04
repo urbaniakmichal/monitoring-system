@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func RetrieveBatteryInfo() ([]BatteryInformation, error) {
+func  (*HardwareBattery)RetrieveBatteryInfo() ([]BatteryInformation, error) {
 	cmd := exec.Command("pmset", "-g", "batt")
 	output, err := cmd.Output()
 	if err != nil {
