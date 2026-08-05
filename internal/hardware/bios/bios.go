@@ -6,3 +6,11 @@ type BiosInformation struct {
 	ReleaseDate  string `json:"ReleaseDate"`
 	SerialNumber string `json:"SerialNumber"`
 }
+
+type Bios interface {
+	RetrieveBiosInformation() (BiosInformation, error)
+}
+
+type HardwareBios struct{}
+
+var _ Bios = (*HardwareBios)(nil)

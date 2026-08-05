@@ -70,7 +70,10 @@ func CollectAllHardwareInformation() (CompleteHardwareInformation, error) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
+
+		bios := bios.HardwareBios{}
 		res, err := bios.RetrieveBiosInformation()
+
 		if err != nil {
 			slog.Error("Failed to collect BIOS info during aggregation", slog.String("error_details", err.Error()))
 			setError(fmt.Errorf("failed to collect BIOS info: %w", err))
