@@ -10,7 +10,7 @@ import (
 	"os/exec"
 )
 
-func RetrieveBiosInformation() (BiosInformation, error) {
+func (*HardwareBios)RetrieveBiosInformation() (BiosInformation, error) {
 	scriptContent := "Get-CimInstance Win32_BIOS | Select-Object Manufacturer, SMBIOSBIOSVersion, ReleaseDate, SerialNumber | ConvertTo-Json"
 
 	executableCommand := exec.Command("powershell", "-NoProfile", "-Command", scriptContent)

@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func RetrieveBiosInformation() (BiosInformation, error) {
+func (*HardwareBios)RetrieveBiosInformation() (BiosInformation, error) {
 	cmd := exec.Command("system_profiler", "SPHardwareDataType")
 	var out bytes.Buffer
 	cmd.Stdout = &out

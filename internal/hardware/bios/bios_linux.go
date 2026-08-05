@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func RetrieveBiosInformation() (BiosInformation, error) {
+func (*HardwareBios)RetrieveBiosInformation() (BiosInformation, error) {
 	readDmi := func(filename string) string {
 		//#nosec G304
 		data, err := os.ReadFile("/sys/class/dmi/id/" + filename)
