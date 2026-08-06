@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-func RetrieveCPUInfo() (CPUInformation, error) {
+func (*HardwareCpu)RetrieveCPUInfo() (CPUInformation, error) {
 	info := CPUInformation{
 		Cores: runtime.NumCPU(),
 	}
@@ -21,7 +21,7 @@ func RetrieveCPUInfo() (CPUInformation, error) {
 		slog.Error("Failed to open /proc/cpuinfo", slog.String("error_details", err.Error()))
 		return info, fmt.Errorf("failed to read cpu info: %w", err)
 	}
-	
+
 	defer func() {
 		if err := file.Close(); err != nil {
 			slog.Error("Failed to close file", slog.String("error_details", err.Error()))
