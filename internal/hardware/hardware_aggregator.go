@@ -106,7 +106,10 @@ func CollectAllHardwareInformation() (CompleteHardwareInformation, error) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
+
+		gpu := gpu.HardwareGpu{}
 		res, err := gpu.RetrieveGPUInfo()
+
 		if err != nil {
 			slog.Error("Failed to collect GPU info during aggregation", slog.String("error_details", err.Error()))
 			setError(fmt.Errorf("failed to collect GPU info: %w", err))
