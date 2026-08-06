@@ -88,7 +88,10 @@ func CollectAllHardwareInformation() (CompleteHardwareInformation, error) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
+
+		cpu := cpu.HardwareCpu{}
 		res, err := cpu.RetrieveCPUInfo()
+
 		if err != nil {
 			slog.Error("Failed to collect CPU info during aggregation", slog.String("error_details", err.Error()))
 			setError(fmt.Errorf("failed to collect CPU info: %w", err))

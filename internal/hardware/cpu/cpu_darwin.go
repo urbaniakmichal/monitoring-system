@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func RetrieveCPUInfo() (CPUInformation, error) {
+func (*HardwareCpu)RetrieveCPUInfo() (CPUInformation, error) {
 	info := CPUInformation{
 		Cores: runtime.NumCPU(),
 	}
