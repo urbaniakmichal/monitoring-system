@@ -13,7 +13,7 @@ type winNetStat struct {
 	ReceivedBytes  uint64 `json:"ReceivedBytes"`
 }
 
-func RetrieveIOStats() (IOStatistics, error) {
+func (*HardwareIo)RetrieveIOStats() (IOStatistics, error) {
 	netStats := make(map[string]NetworkIO)
 	cmd := exec.Command("powershell", "-Command", "Get-NetAdapterStatistics | Select-Object InterfaceAlias, SentBytes, ReceivedBytes | ConvertTo-Json")
 	if output, err := cmd.Output(); err == nil {

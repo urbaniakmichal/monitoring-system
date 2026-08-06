@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func RetrievePeripheralsInfo() (PeripheralsInformation, error) {
+func (*HardwarePeripherals)RetrievePeripheralsInfo() (PeripheralsInformation, error) {
 	var displays []DisplayInformation
 
 	cmd := exec.Command("system_profiler", "SPDisplaysDataType")

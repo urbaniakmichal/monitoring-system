@@ -16,3 +16,11 @@ type PeripheralsInformation struct {
 	Displays []DisplayInformation   `json:"Displays"`
 	USB      []USBDeviceInformation `json:"USB"`
 }
+
+type Peripherals interface {
+	RetrievePeripheralsInfo() (PeripheralsInformation, error)
+}
+
+type HardwarePeripherals struct{}
+
+var _ Peripherals = (*HardwarePeripherals)(nil)

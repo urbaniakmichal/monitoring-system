@@ -9,7 +9,7 @@ import (
 	"syscall"
 )
 
-func RetrieveStorageInformation() ([]StorageInformation, error) {
+func (*HardwareStorage)RetrieveStorageInformation() ([]StorageInformation, error) {
 	file, err := os.Open("/proc/mounts")
 	if err != nil {
 		return nil, err

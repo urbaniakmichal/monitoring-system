@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func RetrieveStorageInformation() ([]StorageInformation, error) {
+func (*HardwareStorage)RetrieveStorageInformation() ([]StorageInformation, error) {
 	cmd := exec.Command("df", "-k")
 	var out bytes.Buffer
 	cmd.Stdout = &out

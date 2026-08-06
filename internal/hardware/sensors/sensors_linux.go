@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func RetrieveSensorsInfo() ([]SensorInformation, error) {
+func (*HardwareSensors)RetrieveSensorsInfo() ([]SensorInformation, error) {
 	var sensors []SensorInformation
 
 	matches, err := filepath.Glob("/sys/class/thermal/thermal_zone*/temp")

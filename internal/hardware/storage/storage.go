@@ -7,3 +7,11 @@ type StorageInformation struct {
 	FreeMB      uint64  `json:"FreeMB"`
 	UsedPercent float64 `json:"UsedPercent"`
 }
+
+type Storage interface {
+	RetrieveStorageInformation() ([]StorageInformation, error)
+}
+
+type HardwareStorage struct{}
+
+var _ Storage = (*HardwareStorage)(nil)

@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func RetrieveSensorsInfo() ([]SensorInformation, error) {
+func (*HardwareSensors)RetrieveSensorsInfo() ([]SensorInformation, error) {
 	cmd := exec.Command("powershell", "-Command", "Get-CimInstance -Namespace root\\wmi -ClassName MSAcpi_ThermalZoneTemperature | Select-Object -ExpandProperty CurrentTemperature")
 	output, err := cmd.Output()
 	if err != nil {

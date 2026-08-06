@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-func RetrieveMemoryInfo() (MemoryInformation, error) {
+func (*HardwareMemory)RetrieveMemoryInfo() (MemoryInformation, error) {
 	file, err := os.Open("/proc/meminfo")
 	if err != nil {
 		slog.Error("Failed to open /proc/meminfo", slog.String("error_details", err.Error()))

@@ -124,7 +124,10 @@ func CollectAllHardwareInformation() (CompleteHardwareInformation, error) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
+
+		io := io.HardwareIo{}
 		res, err := io.RetrieveIOStats()
+
 		if err != nil {
 			slog.Error("Failed to collect IO info during aggregation", slog.String("error_details", err.Error()))
 			setError(fmt.Errorf("failed to collect IO info: %w", err))
@@ -139,7 +142,10 @@ func CollectAllHardwareInformation() (CompleteHardwareInformation, error) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
+
+		memory := memory.HardwareMemory{}
 		res, err := memory.RetrieveMemoryInfo()
+
 		if err != nil {
 			slog.Error("Failed to collect memory info during aggregation", slog.String("error_details", err.Error()))
 			setError(fmt.Errorf("failed to collect memory info: %w", err))
@@ -154,7 +160,10 @@ func CollectAllHardwareInformation() (CompleteHardwareInformation, error) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
+
+		motherboard := motherboard.HardwareMotherboard{}
 		res, err := motherboard.RetrieveMotherboardInfo()
+
 		if err != nil {
 			slog.Error("Failed to collect motherboard info during aggregation", slog.String("error_details", err.Error()))
 			setError(fmt.Errorf("failed to collect motherboard info: %w", err))
@@ -169,7 +178,10 @@ func CollectAllHardwareInformation() (CompleteHardwareInformation, error) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
+
+		network := network.HardwareNetwork{}
 		res, err := network.RetrieveNetworkInfo()
+
 		if err != nil {
 			slog.Error("Failed to collect network info during aggregation", slog.String("error_details", err.Error()))
 			setError(fmt.Errorf("failed to collect network info: %w", err))
@@ -184,7 +196,10 @@ func CollectAllHardwareInformation() (CompleteHardwareInformation, error) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
+
+		peripherals := peripherals.HardwarePeripherals{}
 		res, err := peripherals.RetrievePeripheralsInfo()
+
 		if err != nil {
 			slog.Error("Failed to collect peripherals info during aggregation", slog.String("error_details", err.Error()))
 			setError(fmt.Errorf("failed to collect peripherals info: %w", err))
@@ -199,7 +214,10 @@ func CollectAllHardwareInformation() (CompleteHardwareInformation, error) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
+
+		sensors := sensors.HardwareSensors{}
 		res, err := sensors.RetrieveSensorsInfo()
+
 		if err != nil {
 			slog.Error("Failed to collect sensors info during aggregation", slog.String("error_details", err.Error()))
 			setError(fmt.Errorf("failed to collect sensors info: %w", err))
@@ -214,7 +232,10 @@ func CollectAllHardwareInformation() (CompleteHardwareInformation, error) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
+
+		storage := storage.HardwareStorage{}
 		res, err := storage.RetrieveStorageInformation()
+
 		if err != nil {
 			slog.Error("Failed to collect storage info during aggregation", slog.String("error_details", err.Error()))
 			setError(fmt.Errorf("failed to collect storage info: %w", err))
