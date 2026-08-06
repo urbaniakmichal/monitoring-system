@@ -23,7 +23,7 @@ func TestGpu_MockSuccess(t *testing.T) {
 	}
 }
 
-func TestBattery_MockError(t *testing.T) {
+func TestGpu_MockError(t *testing.T) {
 	mock := &MockGpu{
 		MockError: errors.New("unit test with mocks fail"),
 	}

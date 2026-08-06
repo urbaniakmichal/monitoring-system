@@ -8,7 +8,7 @@ import (
 )
 
 
-func TestSystemInformation_MockSuccess(t *testing.T) {
+func TestSystemLoad_MockSuccess(t *testing.T) {
 	mock := &MockSystemLoadStruct{
    		DataToReturn: &LoadInformation{
 			Load1:     1.1,
@@ -23,7 +23,7 @@ func TestSystemInformation_MockSuccess(t *testing.T) {
 	}
 }
 
-func TestSystemInformation_MockError(t *testing.T) {
+func TestSystemLoad_MockError(t *testing.T) {
 	mock := &MockSystemLoadStruct{
 		MockError: errors.New("unit test with mocks fail"),
 	}
