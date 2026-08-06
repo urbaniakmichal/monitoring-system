@@ -15,7 +15,7 @@ type winLogicalDisk struct {
 	FreeSpace *uint64 `json:"FreeSpace"`
 }
 
-func RetrieveStorageInformation() ([]StorageInformation, error) {
+func (*HardwareStorage)RetrieveStorageInformation() ([]StorageInformation, error) {
 	cmd := exec.Command("powershell", "-NoProfile", "-Command", "Get-CimInstance Win32_LogicalDisk | Select-Object DeviceID, Size, FreeSpace | ConvertTo-Json")
 	var out bytes.Buffer
 	cmd.Stdout = &out

@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func RetrieveIOStats() (IOStatistics, error) {
+func (*HardwareIo)RetrieveIOStats() (IOStatistics, error) {
 	netStats := make(map[string]NetworkIO)
 	cmd := exec.Command("netstat", "-I", "en0", "-b")
 	if output, err := cmd.Output(); err == nil {

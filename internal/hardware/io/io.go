@@ -14,3 +14,11 @@ type IOStatistics struct {
 	Network map[string]NetworkIO `json:"Network"`
 	Disk    map[string]DiskIO    `json:"Disk"`
 }
+
+type Io interface {
+	RetrieveIOStats() (IOStatistics, error)
+}
+
+type HardwareIo struct{}
+
+var _ Io = (*HardwareIo)(nil)

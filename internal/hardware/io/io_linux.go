@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func RetrieveIOStats() (IOStatistics, error) {
+func (*HardwareIo)RetrieveIOStats() (IOStatistics, error) {
 	netStats := make(map[string]NetworkIO)
 	if file, err := os.Open("/proc/net/dev"); err == nil {
 		defer func() { _ = file.Close() }()

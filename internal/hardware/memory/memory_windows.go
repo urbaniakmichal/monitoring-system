@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func RetrieveMemoryInfo() (MemoryInformation, error) {
+func (*HardwareMemory)RetrieveMemoryInfo() (MemoryInformation, error) {
 	cmdTotal := exec.Command("powershell", "-Command", "(Get-CimInstance Win32_OperatingSystem).TotalVisibleMemorySize")
 	outTotal, err := cmdTotal.Output()
 	if err != nil {

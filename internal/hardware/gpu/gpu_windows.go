@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func RetrieveGPUInfo() ([]GPUInformation, error) {
+func (*HardwareGpu)RetrieveGPUInfo() ([]GPUInformation, error) {
 	cmd := exec.Command("powershell", "-Command", "(Get-CimInstance Win32_VideoController).Name")
 	output, err := cmd.Output()
 	if err != nil {

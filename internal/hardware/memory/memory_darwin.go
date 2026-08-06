@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func RetrieveMemoryInfo() (MemoryInformation, error) {
+func (*HardwareMemory)RetrieveMemoryInfo() (MemoryInformation, error) {
 	cmd := exec.Command("sysctl", "-n", "hw.memsize")
 	output, err := cmd.Output()
 	if err != nil {

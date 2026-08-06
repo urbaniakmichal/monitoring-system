@@ -16,7 +16,7 @@ func readDMIFile(path string) string {
 	return strings.TrimSpace(string(data))
 }
 
-func RetrieveMotherboardInfo() (MotherboardInformation, error) {
+func (*HardwareMotherboard)RetrieveMotherboardInfo() (MotherboardInformation, error) {
 	return MotherboardInformation{
 		Manufacturer: readDMIFile("/sys/class/dmi/id/board_vendor"),
 		Product:      readDMIFile("/sys/class/dmi/id/board_name"),

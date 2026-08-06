@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func RetrieveMotherboardInfo() (MotherboardInformation, error) {
+func (*HardwareMotherboard)RetrieveMotherboardInfo() (MotherboardInformation, error) {
 	cmd := exec.Command("sysctl", "-n", "hw.model")
 	output, err := cmd.Output()
 	if err != nil {

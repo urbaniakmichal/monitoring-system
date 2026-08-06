@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func RetrieveGPUInfo() ([]GPUInformation, error) {
+func (*HardwareGpu)RetrieveGPUInfo() ([]GPUInformation, error) {
 	cmd := exec.Command("lspci")
 	output, err := cmd.Output()
 	if err != nil {

@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func RetrieveMotherboardInfo() (MotherboardInformation, error) {
+func (*HardwareMotherboard)RetrieveMotherboardInfo() (MotherboardInformation, error) {
 	cmd := exec.Command("powershell", "-Command", "Get-CimInstance Win32_BaseBoard | Select-Object Manufacturer, Product, Version | ConvertTo-Json")
 	output, err := cmd.Output()
 	if err != nil {
