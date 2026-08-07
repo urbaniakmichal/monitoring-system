@@ -4,23 +4,19 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
-	"encoding/json"
-	"fmt"
 	"log/slog"
-	"time"
-
 	"monitoring-system/internal/config"
+	"monitoring-system/internal/memory_storage"
 	"monitoring-system/internal/metrics"
+	"time"
 )
 
-// Runner coordinates the metrics collection process.
 type Runner struct {
-	Config       config.Config
-	Logger       *slog.Logger
-	PrintMetrics bool
+	Config  config.Config
+	Logger  *slog.Logger
+	Storage *memory_storage.MemoryStorage
 }
 
-// generateTraceID creates a unique trace identifier for a collection cycle.
 func generateTraceID() string {
 	bytes := make([]byte, 16)
 	if _, err := rand.Read(bytes); err != nil {
@@ -29,25 +25,6 @@ func generateTraceID() string {
 	return hex.EncodeToString(bytes)
 }
 
-// CollectOnce gathers system metrics a single time on-demand.
-func (r Runner) CollectOnce(ctx context.Context) (metrics.Metrics, error) {
-	traceID := generateTraceID()
-
-	data, err := metrics.Collect(ctx, r.Config.Timeout)
-	if err != nil {
-		return metrics.Metrics{}, err
-	}
-
-	data.TraceID = traceID
-	data.Timestamp = time.Now().UTC()
-
-	// Update metrics on Prometheus if applicable
-	metrics.RecordMetrics(data)
-
-	return data, nil
-}
-
-// Start runs the continuous metrics collection loop in the background.
 func (r Runner) Start(ctx context.Context) {
 	logger := r.Logger
 	if logger == nil {
@@ -57,7 +34,7 @@ func (r Runner) Start(ctx context.Context) {
 	ticker := time.NewTicker(r.Config.Interval)
 	defer ticker.Stop()
 
-	logger.Info("starting comprehensive metrics collector", "interval", r.Config.Interval, "print_metrics", r.PrintMetrics)
+	logger.Info("starting metrics collector", "interval", r.Config.Interval)
 
 	for {
 		select {
@@ -65,11 +42,22 @@ func (r Runner) Start(ctx context.Context) {
 			logger.Info("stopping metrics collector")
 			return
 		case <-ticker.C:
-			data, err := r.CollectOnce(ctx)
+			traceID := generateTraceID()
+
+			data, err := metrics.Collect(ctx, r.Config.Timeout)
 			if err != nil {
-				logger.Error("failed to collect system metrics", "error", err)
+				logger.Error("failed to collect metrics", "error", err)
 				continue
 			}
+
+			data.TraceID = traceID
+			data.Timestamp = time.Now().UTC()
+
+			if r.Storage != nil {
+				r.Storage.Add(data)
+			}
+
+			metrics.RecordMetrics(data)
 
 			hostname := data.System.System.Hostname
 			if hostname == "" {
@@ -77,23 +65,11 @@ func (r Runner) Start(ctx context.Context) {
 			}
 
 			logger.Info(
-				"comprehensive metrics collected successfully",
+				"metrics collected successfully",
 				"trace_id", data.TraceID,
 				"timestamp", data.Timestamp,
 				"hostname", hostname,
 			)
-
-			// Print metrics JSON to the console if the flag is enabled e.g.  go run .\cmd\monitor-agent\main.go -once -print-metrics=true -output metrics.txt
-			if r.PrintMetrics {
-				jsonData, err := json.MarshalIndent(data, "", "  ")
-				if err == nil {
-					fmt.Println("\n=== [DEBUG] COLLECTED METRICS JSON START ===")
-					fmt.Println(string(jsonData))
-					fmt.Println("\n=== [DEBUG] COLLECTED METRICS JSON END ===")
-				} else {
-					logger.Error("Failed to marshal metrics for console print", "error", err)
-				}
-			}
 		}
 	}
 }

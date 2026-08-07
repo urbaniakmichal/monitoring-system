@@ -19,7 +19,7 @@ type winNetworkAdapter struct {
 	DHCPEnabled bool     `json:"DHCPEnabled"`
 }
 
-func (*SoftwareNetworks)RetrieveActiveNetworkAdapters() ([]NetworkAdapterInformation, error) {
+func (*SoftwareNetworks) RetrieveActiveNetworkAdapters() ([]NetworkAdapterInformation, error) {
 	scriptContent := "Get-CimInstance Win32_NetworkAdapterConfiguration -Filter \"IPEnabled = True\" | Select-Object Caption, Description, IPAddress, MACAddress, DHCPEnabled | ConvertTo-Json"
 
 	executableCommand := exec.Command("powershell", "-NoProfile", "-Command", scriptContent)
@@ -44,11 +44,13 @@ func (*SoftwareNetworks)RetrieveActiveNetworkAdapters() ([]NetworkAdapterInforma
 	if trimmedBytes[0] == '{' {
 		var single winNetworkAdapter
 		if err := json.Unmarshal(trimmedBytes, &single); err != nil {
+			slog.Error("Failed to decode single JSON network adapter object", slog.String("error_details", err.Error()))
 			return nil, err
 		}
 		winAdapters = []winNetworkAdapter{single}
 	} else {
 		if err := json.Unmarshal(trimmedBytes, &winAdapters); err != nil {
+			slog.Error("Failed to decode JSON network adapters list array", slog.String("error_details", err.Error()))
 			return nil, err
 		}
 	}

@@ -87,7 +87,7 @@ func Collect(ctx context.Context, timeout time.Duration) (Metrics, error) {
 	}
 
 	return Metrics{
-		Timestamp: time.Now(),
+		Timestamp: time.Now().UTC(),
 		Hardware:  hwInfo,
 		Software:  swInfo,
 		System:    sysInfo,
