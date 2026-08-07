@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	// --- SYSTEM METRICS (3/3) ---
+	// --- SYSTEM METRICS ---
 	load1Gauge = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "monitor_system_load_1",
@@ -59,7 +59,7 @@ var (
 		[]string{"hostname"},
 	)
 
-	// --- HARDWARE METRICS (11/11) ---
+	// --- HARDWARE METRICS ---
 	cpuUsageGauge = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "monitor_cpu_usage_percent",
@@ -148,7 +148,7 @@ var (
 		[]string{"hostname"},
 	)
 
-	// --- SOFTWARE METRICS (9/9) ---
+	// --- SOFTWARE METRICS ---
 	softwareInfoGauge = promauto.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "monitor_software_os_info",
@@ -212,14 +212,6 @@ var (
 		},
 		[]string{"hostname"},
 	)
-
-	softwareOptionalFeaturesCountGauge = promauto.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Name: "monitor_software_optional_features_total",
-			Help: "Total number of optional features detected",
-		},
-		[]string{"hostname"},
-	)
 )
 
 // RecordMetrics updates Prometheus gauges using the comprehensive nested Metrics struct.
@@ -229,7 +221,7 @@ func RecordMetrics(m Metrics) {
 		hostname = "unknown"
 	}
 
-	// 1. System Metrics (3 fields)
+	// 1. System Metrics
 	load1Gauge.WithLabelValues(hostname).Set(m.System.Load.Load1)
 	load5Gauge.WithLabelValues(hostname).Set(m.System.Load.Load5)
 	load15Gauge.WithLabelValues(hostname).Set(m.System.Load.Load15)
@@ -248,7 +240,7 @@ func RecordMetrics(m Metrics) {
 		uptimeGauge.WithLabelValues(hostname).Set(duration.Seconds())
 	}
 
-	// 2. Hardware Metrics (11 fields)
+	// 2. Hardware Metrics
 	cpuUsageGauge.WithLabelValues(hostname).Set(m.Hardware.CPU.UsagePercent)
 	memoryUsageGauge.WithLabelValues(hostname).Set(m.Hardware.Memory.UsedPercent)
 
@@ -266,7 +258,7 @@ func RecordMetrics(m Metrics) {
 	hardwareIoInfoGauge.WithLabelValues(hostname).Set(1)
 	hardwarePeripheralsInfoGauge.WithLabelValues(hostname).Set(1)
 
-	// 3. Software Metrics (9 fields)
+	// 3. Software Metrics
 	softwareInfoGauge.WithLabelValues(hostname).Set(1)
 	softwareUpdatesCountGauge.WithLabelValues(hostname).Set(float64(len(m.Software.SystemUpdates)))
 	softwareDriversCountGauge.WithLabelValues(hostname).Set(float64(len(m.Software.SystemDrivers)))
