@@ -3,23 +3,16 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"flag"
 	"fmt"
 	"log"
 	"log/slog"
-	"net/http"
 	"os"
-	"os/signal"
-	"syscall"
 	"time"
 
-	"monitoring-system/internal/api"
 	"monitoring-system/internal/config"
 	"monitoring-system/internal/logger"
-	"monitoring-system/internal/memory_storage"
 	"monitoring-system/internal/metrics"
-	"monitoring-system/internal/runner"
 )
 
 var Version = "dev"
@@ -88,31 +81,6 @@ func main() {
 
 		return
 	}
-
-	// Continuous background collection & HTTP server mode
-	signalContext, signalCancel := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
-	defer signalCancel()
-
-	memoryStorageInstance := memory_storage.NewMemoryStorage(1000, loggerInstance)
-
-	agentRunner := runner.Runner{
-		Config:  *cfg,
-		Logger:  loggerInstance,
-		Storage: memoryStorageInstance,
-	}
-
-	controllerInstance := api.NewAgentController(agentRunner, signalContext)
-	httpServerInstance := buildHTTPServer(cfg, memoryStorageInstance, controllerInstance, loggerInstance)
-
-	controllerInstance.Start()
-	startHTTPServer(httpServerInstance, loggerInstance)
-
-	loggerInstance.Info("starting monitoring agent application", "version", Version)
-
-	// Wait for an interruption signal (blocks the main thread until shutdown)
-	<-signalContext.Done()
-
-	shutdownApplication(httpServerInstance, controllerInstance, loggerInstance)
 }
 
 func initLogger() *slog.Logger {
@@ -138,46 +106,4 @@ func loadConfig(path string) *config.Config {
 	}
 
 	return cfg
-}
-
-func buildHTTPServer(cfg *config.Config, store *memory_storage.MemoryStorage, ctrl *api.AgentController, loggerInstance *slog.Logger) *http.Server {
-	apiHandler := api.NewHandler(store, ctrl, loggerInstance)
-	router := api.NewRouter(apiHandler)
-
-	httpHandler := http.Handler(router)
-	httpHandler = api.Logger(httpHandler)
-	httpHandler = api.TraceID(httpHandler)
-	httpHandler = api.Recovery(httpHandler)
-
-	return &http.Server{
-		Addr:         fmt.Sprintf(":%d", cfg.Server.Port),
-		Handler:      httpHandler,
-		ReadTimeout:  cfg.Server.ReadTimeout,
-		WriteTimeout: cfg.Server.WriteTimeout,
-		IdleTimeout:  cfg.Server.IdleTimeout,
-	}
-}
-
-func startHTTPServer(serverInstance *http.Server, loggerInstance *slog.Logger) {
-	go func() {
-		loggerInstance.Info("starting HTTP server", slog.String("addr", serverInstance.Addr))
-		if serverError := serverInstance.ListenAndServe(); serverError != nil && !errors.Is(serverError, http.ErrServerClosed) {
-			loggerInstance.Error("HTTP server error", slog.String("error_details", serverError.Error()))
-		}
-	}()
-}
-
-func shutdownApplication(serverInstance *http.Server, ctrl *api.AgentController, loggerInstance *slog.Logger) {
-	loggerInstance.Info("shutting down agent and HTTP server...")
-
-	ctrl.Stop()
-
-	shutdownContext, shutdownCancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer shutdownCancel()
-
-	if shutdownError := serverInstance.Shutdown(shutdownContext); shutdownError != nil {
-		loggerInstance.Error("HTTP server forced shutdown", slog.String("error_details", shutdownError.Error()))
-	}
-
-	loggerInstance.Info("agent exited gracefully")
 }
