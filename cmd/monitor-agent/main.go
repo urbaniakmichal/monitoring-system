@@ -7,9 +7,11 @@ import (
 	"fmt"
 	"log"
 	"log/slog"
+	"net/http"
 	"os"
 	"time"
 
+	"monitoring-system/internal/api"
 	"monitoring-system/internal/config"
 	"monitoring-system/internal/logger"
 	"monitoring-system/internal/metrics"
@@ -80,6 +82,32 @@ func main() {
 		}
 
 		return
+	}
+
+	// =========================================================================
+	// HTTP SERVER (DAEMON MODE)
+	// =========================================================================
+	loggerInstance.Info("starting monitoring agent HTTP server...", "version", Version)
+
+	// 1. Init
+	agentSvc := api.NewAgentService(loggerInstance)
+	restHandler := api.NewRestHandler(agentSvc)
+
+	// 2. Run ServeMux
+	mux := http.NewServeMux()
+
+	mux.HandleFunc("GET /api/v1/health", restHandler.HealthCheck)
+	mux.HandleFunc("POST /api/v1/agent/start", restHandler.StartAgent)
+	mux.HandleFunc("POST /api/v1/agent/stop", restHandler.StopAgent)
+	mux.HandleFunc("GET /api/v1/agent/file", restHandler.GenerateFile)
+
+	// 3. Start server HTTP
+	serverAddr := ":8080"
+	loggerInstance.Info("server listening", slog.String("addr", serverAddr))
+
+	if err := http.ListenAndServe(serverAddr, mux); err != nil {
+		loggerInstance.Error("HTTP server failed", slog.String("error", err.Error()))
+		os.Exit(1)
 	}
 }
 

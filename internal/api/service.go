@@ -32,7 +32,7 @@ func (s *agentService) Start() error {
 	defer s.mutex.Unlock()
 
 	if s.isRunning == true {
-		return errors.New("Try to stop but the application is currently running")
+		return errors.New("Try to start but the application is currently running")
 	}
 
 	s.isRunning = true
@@ -53,7 +53,7 @@ func (s *agentService) Stop() error {
 	return nil
 }
 
-func MakeFile() error {
+func (s *agentService) MakeFile() error {
 	// todo implement later
 	return nil
 }

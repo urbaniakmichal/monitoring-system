@@ -1,1 +1,126 @@
 package api
+
+import (
+	"encoding/json"
+	"net/http"
+	"time"
+)
+
+type RestHandler struct {
+	as *agentService
+}
+
+func NewRestHandler(as *agentService) *RestHandler {
+	return &RestHandler{
+		as: as,
+	}
+}
+
+func (rh *RestHandler) HealthCheck(res http.ResponseWriter, req *http.Request) {
+	running := rh.as.IsRunning()
+
+	statusStr := "stopped"
+	relAction := "start"
+	targetHref := "/api/v1/agent/start"
+
+	if running {
+		statusStr = "running"
+		relAction = "stop"
+		targetHref = "/api/v1/agent/stop"
+	}
+
+	resp := HealthResponse{
+		Status:    statusStr,
+		Uptime:    "active",
+		Timestamp: time.Now().UTC(),
+		ResponseEnvelope: ResponseEnvelope{
+			Links: []Link{
+				{
+					Rel:    relAction,
+					Href:   targetHref,
+					Method: http.MethodPost,
+				},
+				{
+					Rel:    "file",
+					Href:   "/api/v1/agent/file",
+					Method: http.MethodGet,
+				},
+			},
+		},
+	}
+
+	res.Header().Set("Content-Type", "application/json")
+	res.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(res).Encode(resp)
+}
+
+func (rh *RestHandler) StartAgent(res http.ResponseWriter, req *http.Request) {
+	res.Header().Set("Content-Type", "application/json")
+
+	err := rh.as.Start()
+	if err != nil {
+		res.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(res).Encode(map[string]string{"error": err.Error()})
+		return
+	}
+
+	resp := AgentActionResponse{
+		Message:   "Agent started successfully",
+		Timestamp: time.Now().UTC(),
+		ResponseEnvelope: ResponseEnvelope{
+			Links: []Link{
+				{
+					Rel:    "stop",
+					Href:   "/api/v1/agent/stop",
+					Method: http.MethodPost,
+				},
+			},
+		},
+	}
+
+	res.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(res).Encode(resp)
+}
+
+func (rh *RestHandler) StopAgent(res http.ResponseWriter, req *http.Request) {
+	res.Header().Set("Content-Type", "application/json")
+
+	err := rh.as.Stop()
+	if err != nil {
+		res.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(res).Encode(map[string]string{"error": err.Error()})
+		return
+	}
+
+	resp := AgentActionResponse{
+		Message:   "Agent stopped successfully",
+		Timestamp: time.Now().UTC(),
+		ResponseEnvelope: ResponseEnvelope{
+			Links: []Link{
+				{
+					Rel:    "start",
+					Href:   "/api/v1/agent/start",
+					Method: http.MethodPost,
+				},
+			},
+		},
+	}
+
+	res.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(res).Encode(resp)
+}
+
+func (rh *RestHandler) GenerateFile(res http.ResponseWriter, req *http.Request) {
+	res.Header().Set("Content-Type", "multipart/form-data")
+
+	// Todo implement
+	err := rh.as.MakeFile()
+	if err != nil {
+		res.Header().Set("Content-Type", "application/json")
+		res.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(res).Encode(map[string]string{"error": err.Error()})
+		return
+	}
+
+	res.WriteHeader(http.StatusCreated)
+}
