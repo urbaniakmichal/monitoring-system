@@ -57,10 +57,11 @@ func (rh *RestHandler) HealthCheck(res http.ResponseWriter, req *http.Request) {
 func (rh *RestHandler) StartAgent(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set("Content-Type", "application/json")
 
-	err := rh.as.Start()
-	if err != nil {
+	if err := rh.as.Start(); err != nil {
 		res.WriteHeader(http.StatusBadRequest)
-		_ = json.NewEncoder(res).Encode(map[string]string{"error": err.Error()})
+		_ = json.NewEncoder(res).Encode(AgentActionResponse{
+			Message: err.Error(),
+		})
 		return
 	}
 
@@ -85,10 +86,11 @@ func (rh *RestHandler) StartAgent(res http.ResponseWriter, req *http.Request) {
 func (rh *RestHandler) StopAgent(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set("Content-Type", "application/json")
 
-	err := rh.as.Stop()
-	if err != nil {
+	if err := rh.as.Stop(); err != nil {
 		res.WriteHeader(http.StatusBadRequest)
-		_ = json.NewEncoder(res).Encode(map[string]string{"error": err.Error()})
+		_ = json.NewEncoder(res).Encode(AgentActionResponse{
+			Message: err.Error(),
+		})
 		return
 	}
 
@@ -113,7 +115,6 @@ func (rh *RestHandler) StopAgent(res http.ResponseWriter, req *http.Request) {
 func (rh *RestHandler) GenerateFile(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set("Content-Type", "multipart/form-data")
 
-	// Todo implement
 	err := rh.as.MakeFile()
 	if err != nil {
 		res.Header().Set("Content-Type", "application/json")

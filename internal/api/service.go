@@ -31,8 +31,8 @@ func (s *agentService) Start() error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	if s.isRunning == true {
-		return errors.New("Try to start but the application is currently running")
+	if s.isRunning {
+		return errors.New("Agent is already running")
 	}
 
 	s.isRunning = true
@@ -44,8 +44,8 @@ func (s *agentService) Stop() error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	if s.isRunning == false {
-		return errors.New("Try to stop but the application is currently stopped")
+	if !s.isRunning {
+		return errors.New("Agent is already stopped")
 	}
 
 	s.isRunning = false
