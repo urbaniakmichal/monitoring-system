@@ -90,14 +90,14 @@ func TestRequestStart(t *testing.T) {
 			name:           "success - start stopped agent",
 			alreadyRunning: false,
 			wantStatusCode: http.StatusOK,
-			wantMessage:    "Agent started successfully",
+			wantMessage:    "agent started successfully",
 			wantRel:        "stop",
 		},
 		{
 			name:           "failure - agent already running",
 			alreadyRunning: true,
 			wantStatusCode: http.StatusBadRequest,
-			wantMessage:    "Agent is already running",
+			wantMessage:    "agent is already running",
 			wantRel:        "",
 		},
 	}
@@ -154,14 +154,14 @@ func TestRequestStop(t *testing.T) {
 			name:           "success - stop running agent",
 			alreadyStopped: false,
 			wantStatusCode: http.StatusOK,
-			wantMessage:    "Agent stopped successfully",
+			wantMessage:    "agent stopped successfully",
 			wantRel:        "start",
 		},
 		{
 			name:           "failure - agent already stopped",
 			alreadyStopped: true,
 			wantStatusCode: http.StatusBadRequest,
-			wantMessage:    "Agent is already stopped",
+			wantMessage:    "agent is already stopped",
 			wantRel:        "",
 		},
 	}
