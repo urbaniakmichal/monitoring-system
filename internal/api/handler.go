@@ -66,7 +66,7 @@ func (rh *RestHandler) StartAgent(res http.ResponseWriter, req *http.Request) {
 	}
 
 	resp := AgentActionResponse{
-		Message:   "Agent started successfully",
+		Message:   "agent started successfully",
 		Timestamp: time.Now().UTC(),
 		ResponseEnvelope: ResponseEnvelope{
 			Links: []Link{
@@ -95,7 +95,7 @@ func (rh *RestHandler) StopAgent(res http.ResponseWriter, req *http.Request) {
 	}
 
 	resp := AgentActionResponse{
-		Message:   "Agent stopped successfully",
+		Message:   "agent stopped successfully",
 		Timestamp: time.Now().UTC(),
 		ResponseEnvelope: ResponseEnvelope{
 			Links: []Link{

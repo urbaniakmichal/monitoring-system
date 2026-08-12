@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -68,7 +69,7 @@ func main() {
 
 		// If an output file path is specified, write JSON to the file
 		if *outputFile != "" {
-			err := os.WriteFile(*outputFile, jsonData, 0644)
+			err := os.WriteFile(*outputFile, jsonData, 0600)
 			if err != nil {
 				loggerInstance.Error("failed to write metrics to file", slog.String("file", *outputFile), slog.String("error", err.Error()))
 				os.Exit(1)
@@ -105,9 +106,17 @@ func main() {
 	serverAddr := ":8080"
 	loggerInstance.Info("server listening", slog.String("addr", serverAddr))
 
-	if err := http.ListenAndServe(serverAddr, mux); err != nil {
-		loggerInstance.Error("HTTP server failed", slog.String("error", err.Error()))
-		os.Exit(1)
+	server := &http.Server{
+		Addr:              serverAddr,
+		Handler:           mux,
+		ReadHeaderTimeout: 3 * time.Second,
+		ReadTimeout:       5 * time.Second,
+		WriteTimeout:      10 * time.Second,
+		IdleTimeout:       15 * time.Second,
+	}
+
+	if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		log.Fatalf("Server failed: %v", err)
 	}
 }
 

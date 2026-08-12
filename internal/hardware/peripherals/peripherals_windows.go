@@ -18,7 +18,7 @@ type winUSB struct {
 	DeviceID     string `json:"DeviceID"`
 }
 
-func (*HardwarePeripherals)RetrievePeripheralsInfo() (PeripheralsInformation, error) {
+func (*HardwarePeripherals) RetrievePeripheralsInfo() (PeripheralsInformation, error) {
 	var displays []DisplayInformation
 	cmdMon := exec.Command("powershell", "-Command", "Get-CimInstance Win32_DesktopMonitor | Select-Object DeviceID, Caption | ConvertTo-Json")
 	if output, err := cmdMon.Output(); err == nil {
@@ -57,11 +57,7 @@ func (*HardwarePeripherals)RetrievePeripheralsInfo() (PeripheralsInformation, er
 		}
 
 		for _, u := range rawUSB {
-			usbDevices = append(usbDevices, USBDeviceInformation{
-				Name:         u.Name,
-				Manufacturer: u.Manufacturer,
-				DeviceID:     u.DeviceID,
-			})
+			usbDevices = append(usbDevices, USBDeviceInformation(u))
 		}
 	}
 
