@@ -15,7 +15,9 @@ import (
 	"monitoring-system/internal/api"
 	"monitoring-system/internal/config"
 	"monitoring-system/internal/logger"
+	"monitoring-system/internal/memory_storage"
 	"monitoring-system/internal/metrics"
+	"monitoring-system/internal/runner"
 )
 
 var Version = "dev"
@@ -45,6 +47,11 @@ func main() {
 	// Initialize logger and configuration
 	loggerInstance := initLogger()
 	cfg := loadConfig(*configPath)
+	r := &runner.Runner{
+		Config:  *cfg,
+		Logger:  loggerInstance,
+		Storage: memory_storage.NewMemoryStorage(12, loggerInstance),
+	}
 
 	// Handle one-shot collection mode (on-demand / CLI)
 	if *onceFlag {
@@ -91,7 +98,7 @@ func main() {
 	loggerInstance.Info("starting monitoring agent HTTP server...", "version", Version)
 
 	// 1. Init
-	agentSvc := api.NewAgentService(loggerInstance)
+	agentSvc := api.NewAgentService(loggerInstance, r)
 	restHandler := api.NewRestHandler(agentSvc)
 
 	// 2. Run ServeMux
@@ -101,6 +108,7 @@ func main() {
 	mux.HandleFunc("POST /api/v1/agent/start", restHandler.StartAgent)
 	mux.HandleFunc("POST /api/v1/agent/stop", restHandler.StopAgent)
 	mux.HandleFunc("GET /api/v1/agent/file", restHandler.GenerateFile)
+	mux.HandleFunc("GET /api/v1/agent/metrics", restHandler.Metrics)
 
 	// 3. Start server HTTP
 	serverAddr := ":8080"

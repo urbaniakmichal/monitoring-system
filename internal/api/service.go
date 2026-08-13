@@ -4,30 +4,34 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"monitoring-system/internal/metrics"
+	"monitoring-system/internal/runner"
 	"sync"
 )
 
-type agentService struct {
+type AgentService struct {
 	isRunning      bool
-	mutex          sync.Mutex
+	mutex          sync.RWMutex
 	cancelFunction context.CancelFunc
 	customLog      *slog.Logger
+	runner         *runner.Runner
 }
 
-func NewAgentService(log *slog.Logger) *agentService {
-	return &agentService{
+func NewAgentService(log *slog.Logger, r *runner.Runner) *AgentService {
+	return &AgentService{
 		customLog: log,
+		runner:    r,
 	}
 }
 
-func (s *agentService) IsRunning() bool {
+func (s *AgentService) IsRunning() bool {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
-	s.customLog.Info("agentService.isRunning value is", "isRunning", s.isRunning)
+	s.customLog.Info("AgentService.isRunning value is", "isRunning", s.isRunning)
 	return s.isRunning
 }
 
-func (s *agentService) Start() error {
+func (s *AgentService) Start() error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
@@ -35,12 +39,17 @@ func (s *agentService) Start() error {
 		return errors.New("agent is already running")
 	}
 
+	childCtx, cancel := context.WithCancel(context.Background())
+	s.cancelFunction = cancel
+	go s.runner.Start(childCtx)
+
 	s.isRunning = true
 	s.customLog.Info("Running the service")
+
 	return nil
 }
 
-func (s *agentService) Stop() error {
+func (s *AgentService) Stop() error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
@@ -48,12 +57,29 @@ func (s *agentService) Stop() error {
 		return errors.New("agent is already stopped")
 	}
 
+	if s.cancelFunction != nil {
+		s.cancelFunction()
+	}
+
+	s.cancelFunction = nil
 	s.isRunning = false
 	s.customLog.Info("Stopped the service")
+
 	return nil
 }
 
-func (s *agentService) MakeFile() error {
+func (s *AgentService) Metrics() ([]metrics.Metrics, error) {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+
+	if s.runner == nil || s.runner.Storage == nil {
+		return nil, errors.New("storage is not initialized")
+	}
+
+	return s.runner.Storage.GetAll(), nil
+}
+
+func (s *AgentService) MakeFile() error {
 	// todo implement later
 	return nil
 }

@@ -15,6 +15,14 @@ func newTestLogger() *slog.Logger {
 	return slog.New(slog.NewTextHandler(io.Discard, nil))
 }
 
+// func newTestRunner() *runner.Runner {
+// 	return runner.Runner{
+// 		Config:  *cfg,
+// 		Logger:  loggerInstance,
+// 		Storage: memory_storage.NewMemoryStorage(12, loggerInstance),
+// 	}
+// }
+
 func TestRequestHealthCheck(t *testing.T) {
 	tests := []struct {
 		name         string

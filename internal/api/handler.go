@@ -7,10 +7,10 @@ import (
 )
 
 type RestHandler struct {
-	as *agentService
+	as *AgentService
 }
 
-func NewRestHandler(as *agentService) *RestHandler {
+func NewRestHandler(as *AgentService) *RestHandler {
 	return &RestHandler{
 		as: as,
 	}
@@ -75,6 +75,11 @@ func (rh *RestHandler) StartAgent(res http.ResponseWriter, req *http.Request) {
 					Href:   "/api/v1/agent/stop",
 					Method: http.MethodPost,
 				},
+				{
+					Rel:    "metrics",
+					Href:   "/api/v1/agent/metrics",
+					Method: http.MethodGet,
+				},
 			},
 		},
 	}
@@ -102,6 +107,42 @@ func (rh *RestHandler) StopAgent(res http.ResponseWriter, req *http.Request) {
 				{
 					Rel:    "start",
 					Href:   "/api/v1/agent/start",
+					Method: http.MethodPost,
+				},
+			},
+		},
+	}
+
+	res.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(res).Encode(resp)
+}
+
+func (rh *RestHandler) Metrics(res http.ResponseWriter, req *http.Request) {
+	res.Header().Set("Content-Type", "application/json")
+
+	metricsData, err := rh.as.Metrics()
+	if err != nil {
+		res.WriteHeader(http.StatusInternalServerError)
+		_ = json.NewEncoder(res).Encode(AgentActionResponse{
+			Message: err.Error(),
+		})
+		return
+	}
+
+	resp := MetricsResponse{
+		Message:   "get all metrics successfully",
+		Timestamp: time.Now().UTC(),
+		Data:      metricsData,
+		ResponseEnvelope: ResponseEnvelope{
+			Links: []Link{
+				{
+					Rel:    "start",
+					Href:   "/api/v1/agent/start",
+					Method: http.MethodPost,
+				},
+				{
+					Rel:    "stop",
+					Href:   "/api/v1/agent/stop",
 					Method: http.MethodPost,
 				},
 			},

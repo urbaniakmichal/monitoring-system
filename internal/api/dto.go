@@ -1,6 +1,9 @@
 package api
 
-import "time"
+import (
+	"monitoring-system/internal/metrics"
+	"time"
+)
 
 // Link represents a HATEOAS hypermedia link.
 type Link struct {
@@ -36,4 +39,12 @@ type ReportResponse struct {
 	Filename  string    `json:"filename"`
 	Size      int64     `json:"size_bytes"`
 	Timestamp time.Time `json:"timestamp"`
+}
+
+// MetricsResponse represents metrics to return.
+type MetricsResponse struct {
+	ResponseEnvelope
+	Message   string            `json:"message"`
+	Timestamp time.Time         `json:"timestamp"`
+	Data      []metrics.Metrics `json:"data"`
 }
