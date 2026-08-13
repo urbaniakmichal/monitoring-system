@@ -2,27 +2,28 @@ package memory_storage
 
 import (
 	"log/slog"
+	"monitoring-system/internal/metrics"
 	"sync"
 )
 
 type MemoryStorage struct {
-	mu       sync.RWMutex
+	mtx      sync.RWMutex
 	capacity int
-	items    []any
+	items    []metrics.Metrics
 	logger   *slog.Logger
 }
 
 func NewMemoryStorage(capacity int, logger *slog.Logger) *MemoryStorage {
 	return &MemoryStorage{
 		capacity: capacity,
-		items:    make([]any, 0, capacity),
+		items:    make([]metrics.Metrics, 0, capacity),
 		logger:   logger,
 	}
 }
 
-func (s *MemoryStorage) Add(item any) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+func (s *MemoryStorage) Add(item metrics.Metrics) {
+	s.mtx.Lock()
+	defer s.mtx.Unlock()
 
 	if len(s.items) >= s.capacity {
 		// Remove the oldest item if capacity is reached (FIFO)
@@ -35,11 +36,11 @@ func (s *MemoryStorage) Add(item any) {
 	}
 }
 
-func (s *MemoryStorage) GetAll() []any {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+func (s *MemoryStorage) GetAll() []metrics.Metrics {
+	s.mtx.RLock()
+	defer s.mtx.RUnlock()
 
-	result := make([]any, len(s.items))
+	result := make([]metrics.Metrics, len(s.items))
 	copy(result, s.items)
 	return result
 }
