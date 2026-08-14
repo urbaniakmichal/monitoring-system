@@ -9,141 +9,161 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
+
+	"monitoring-system/internal/config"
+	"monitoring-system/internal/memory_storage"
+	"monitoring-system/internal/metrics"
+	"monitoring-system/internal/runner"
 )
 
 func newTestLogger() *slog.Logger {
 	return slog.New(slog.NewTextHandler(io.Discard, nil))
 }
 
-// func newTestRunner() *runner.Runner {
-// 	return runner.Runner{
-// 		Config:  *cfg,
-// 		Logger:  loggerInstance,
-// 		Storage: memory_storage.NewMemoryStorage(12, loggerInstance),
-// 	}
-// }
+func newTestRunner(testLogger *slog.Logger) *runner.Runner {
+	agentConfig := config.Config{
+		Interval: 1 * time.Second,
+	}
+
+	metricsStorage := memory_storage.NewMemoryStorage(10, testLogger)
+
+	return &runner.Runner{
+		Config:  agentConfig,
+		Storage: metricsStorage,
+		Logger:  testLogger,
+	}
+}
 
 func TestRequestHealthCheck(t *testing.T) {
-	tests := []struct {
-		name         string
-		startService bool
-		wantStatus   string
-		wantRel      string
+	testCases := []struct {
+		name                 string
+		startServiceBefore   bool
+		expectedHealthStatus string
+		expectedFirstLinkRel string
 	}{
 		{
-			name:         "when agent is running",
-			startService: true,
-			wantStatus:   "running",
-			wantRel:      "stop",
+			name:                 "when agent is running",
+			startServiceBefore:   true,
+			expectedHealthStatus: "running",
+			expectedFirstLinkRel: "stop",
 		},
 		{
-			name:         "when agent is stopped",
-			startService: false,
-			wantStatus:   "stopped",
-			wantRel:      "start",
+			name:                 "when agent is stopped",
+			startServiceBefore:   false,
+			expectedHealthStatus: "stopped",
+			expectedFirstLinkRel: "start",
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			svc := NewAgentService(newTestLogger())
-			if tt.startService {
-				_ = svc.Start()
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			testLogger := newTestLogger()
+			agentRunner := newTestRunner(testLogger)
+			agentService := NewAgentService(testLogger, agentRunner)
+
+			if testCase.startServiceBefore {
+				_ = agentService.Start()
+				defer agentService.Stop()
 			}
-			handler := NewRestHandler(svc)
+			restHandler := NewRestHandler(agentService)
 
-			req := httptest.NewRequest(http.MethodGet, "/api/v1/health", nil)
-			w := httptest.NewRecorder()
+			httpRequest := httptest.NewRequest(http.MethodGet, "/api/v1/health", nil)
+			responseRecorder := httptest.NewRecorder()
 
-			handler.HealthCheck(w, req)
-			res := w.Result()
-			defer res.Body.Close()
+			restHandler.HealthCheck(responseRecorder, httpRequest)
+			httpResponse := responseRecorder.Result()
+			defer httpResponse.Body.Close()
 
-			if res.StatusCode != http.StatusOK {
-				t.Fatalf("Expected status 200 OK, got %d", res.StatusCode)
+			if httpResponse.StatusCode != http.StatusOK {
+				t.Fatalf("Expected status 200 OK, got %d", httpResponse.StatusCode)
 			}
 
-			var resp HealthResponse
-			if err := json.NewDecoder(res.Body).Decode(&resp); err != nil {
+			var healthCheckResponse HealthResponse
+			if err := json.NewDecoder(httpResponse.Body).Decode(&healthCheckResponse); err != nil {
 				t.Fatalf("Failed to decode JSON: %v", err)
 			}
 
-			if resp.Status != tt.wantStatus {
-				t.Errorf("Expected status %q, got %q", tt.wantStatus, resp.Status)
+			if healthCheckResponse.Status != testCase.expectedHealthStatus {
+				t.Errorf("Expected status %q, got %q", testCase.expectedHealthStatus, healthCheckResponse.Status)
 			}
 
-			if len(resp.Links) < 2 {
-				t.Fatalf("Expected at least 2 HATEOAS links, got %d", len(resp.Links))
+			if len(healthCheckResponse.Links) < 2 {
+				t.Fatalf("Expected at least 2 HATEOAS links, got %d", len(healthCheckResponse.Links))
 			}
 
-			if resp.Links[0].Rel != tt.wantRel {
-				t.Errorf("Expected first link rel %q, got %q", tt.wantRel, resp.Links[0].Rel)
+			if healthCheckResponse.Links[0].Rel != testCase.expectedFirstLinkRel {
+				t.Errorf("Expected first link rel %q, got %q", testCase.expectedFirstLinkRel, healthCheckResponse.Links[0].Rel)
 			}
-			if resp.Links[1].Rel != "file" {
-				t.Errorf("Expected second link rel 'file', got %q", resp.Links[1].Rel)
+			if healthCheckResponse.Links[1].Rel != "file" {
+				t.Errorf("Expected second link rel 'file', got %q", healthCheckResponse.Links[1].Rel)
 			}
 		})
 	}
 }
 
 func TestRequestStart(t *testing.T) {
-	tests := []struct {
-		name           string
-		alreadyRunning bool
-		wantStatusCode int
-		wantMessage    string
-		wantRel        string
+	testCases := []struct {
+		name                    string
+		isAlreadyRunning        bool
+		expectedStatusCode      int
+		expectedResponseMessage string
+		expectedLinkRel         string
 	}{
 		{
-			name:           "success - start stopped agent",
-			alreadyRunning: false,
-			wantStatusCode: http.StatusOK,
-			wantMessage:    "agent started successfully",
-			wantRel:        "stop",
+			name:                    "success - start stopped agent",
+			isAlreadyRunning:        false,
+			expectedStatusCode:      http.StatusOK,
+			expectedResponseMessage: "agent started successfully",
+			expectedLinkRel:         "stop",
 		},
 		{
-			name:           "failure - agent already running",
-			alreadyRunning: true,
-			wantStatusCode: http.StatusBadRequest,
-			wantMessage:    "agent is already running",
-			wantRel:        "",
+			name:                    "failure - agent already running",
+			isAlreadyRunning:        true,
+			expectedStatusCode:      http.StatusBadRequest,
+			expectedResponseMessage: "agent is already running",
+			expectedLinkRel:         "",
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			svc := NewAgentService(newTestLogger())
-			if tt.alreadyRunning {
-				_ = svc.Start()
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			testLogger := newTestLogger()
+			agentRunner := newTestRunner(testLogger)
+			agentService := NewAgentService(testLogger, agentRunner)
+
+			if testCase.isAlreadyRunning {
+				_ = agentService.Start()
+				defer agentService.Stop()
 			}
-			handler := NewRestHandler(svc)
+			restHandler := NewRestHandler(agentService)
 
-			req := httptest.NewRequest(http.MethodPost, "/api/v1/agent/start", nil)
-			w := httptest.NewRecorder()
+			httpRequest := httptest.NewRequest(http.MethodPost, "/api/v1/agent/start", nil)
+			responseRecorder := httptest.NewRecorder()
 
-			handler.StartAgent(w, req)
-			res := w.Result()
-			defer res.Body.Close()
+			restHandler.StartAgent(responseRecorder, httpRequest)
+			httpResponse := responseRecorder.Result()
+			defer httpResponse.Body.Close()
 
-			if res.StatusCode != tt.wantStatusCode {
-				t.Fatalf("Expected status %d, got %d", tt.wantStatusCode, res.StatusCode)
+			if httpResponse.StatusCode != testCase.expectedStatusCode {
+				t.Fatalf("Expected status %d, got %d", testCase.expectedStatusCode, httpResponse.StatusCode)
 			}
 
-			var resp AgentActionResponse
-			if err := json.NewDecoder(res.Body).Decode(&resp); err != nil {
+			var actionResponse AgentActionResponse
+			if err := json.NewDecoder(httpResponse.Body).Decode(&actionResponse); err != nil {
 				t.Fatalf("Failed to decode JSON: %v", err)
 			}
 
-			if resp.Message != tt.wantMessage {
-				t.Errorf("Expected message %q, got %q", tt.wantMessage, resp.Message)
+			if actionResponse.Message != testCase.expectedResponseMessage {
+				t.Errorf("Expected message %q, got %q", testCase.expectedResponseMessage, actionResponse.Message)
 			}
 
-			if tt.wantRel != "" {
-				if len(resp.Links) < 1 {
-					t.Fatalf("Expected at least 1 HATEOAS link, got %d", len(resp.Links))
+			if testCase.expectedLinkRel != "" {
+				if len(actionResponse.Links) < 1 {
+					t.Fatalf("Expected at least 1 HATEOAS link, got %d", len(actionResponse.Links))
 				}
-				if resp.Links[0].Rel != tt.wantRel {
-					t.Errorf("Expected link rel %q, got %q", tt.wantRel, resp.Links[0].Rel)
+				if actionResponse.Links[0].Rel != testCase.expectedLinkRel {
+					t.Errorf("Expected link rel %q, got %q", testCase.expectedLinkRel, actionResponse.Links[0].Rel)
 				}
 			}
 		})
@@ -151,63 +171,132 @@ func TestRequestStart(t *testing.T) {
 }
 
 func TestRequestStop(t *testing.T) {
-	tests := []struct {
-		name           string
-		alreadyStopped bool
-		wantStatusCode int
-		wantMessage    string
-		wantRel        string
+	testCases := []struct {
+		name                    string
+		isAlreadyStopped        bool
+		expectedStatusCode      int
+		expectedResponseMessage string
+		expectedLinkRel         string
 	}{
 		{
-			name:           "success - stop running agent",
-			alreadyStopped: false,
-			wantStatusCode: http.StatusOK,
-			wantMessage:    "agent stopped successfully",
-			wantRel:        "start",
+			name:                    "success - stop running agent",
+			isAlreadyStopped:        false,
+			expectedStatusCode:      http.StatusOK,
+			expectedResponseMessage: "agent stopped successfully",
+			expectedLinkRel:         "start",
 		},
 		{
-			name:           "failure - agent already stopped",
-			alreadyStopped: true,
-			wantStatusCode: http.StatusBadRequest,
-			wantMessage:    "agent is already stopped",
-			wantRel:        "",
+			name:                    "failure - agent already stopped",
+			isAlreadyStopped:        true,
+			expectedStatusCode:      http.StatusBadRequest,
+			expectedResponseMessage: "agent is already stopped",
+			expectedLinkRel:         "",
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			svc := NewAgentService(newTestLogger())
-			if !tt.alreadyStopped {
-				_ = svc.Start()
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			testLogger := newTestLogger()
+			agentRunner := newTestRunner(testLogger)
+			agentService := NewAgentService(testLogger, agentRunner)
+
+			if !testCase.isAlreadyStopped {
+				_ = agentService.Start()
+				defer agentService.Stop()
 			}
-			handler := NewRestHandler(svc)
+			restHandler := NewRestHandler(agentService)
 
-			req := httptest.NewRequest(http.MethodPost, "/api/v1/agent/stop", nil)
-			w := httptest.NewRecorder()
+			httpRequest := httptest.NewRequest(http.MethodPost, "/api/v1/agent/stop", nil)
+			responseRecorder := httptest.NewRecorder()
 
-			handler.StopAgent(w, req)
-			res := w.Result()
-			defer res.Body.Close()
+			restHandler.StopAgent(responseRecorder, httpRequest)
+			httpResponse := responseRecorder.Result()
+			defer httpResponse.Body.Close()
 
-			if res.StatusCode != tt.wantStatusCode {
-				t.Fatalf("Expected status %d, got %d", tt.wantStatusCode, res.StatusCode)
+			if httpResponse.StatusCode != testCase.expectedStatusCode {
+				t.Fatalf("Expected status %d, got %d", testCase.expectedStatusCode, httpResponse.StatusCode)
 			}
 
-			var resp AgentActionResponse
-			if err := json.NewDecoder(res.Body).Decode(&resp); err != nil {
+			var actionResponse AgentActionResponse
+			if err := json.NewDecoder(httpResponse.Body).Decode(&actionResponse); err != nil {
 				t.Fatalf("Failed to decode JSON: %v", err)
 			}
 
-			if resp.Message != tt.wantMessage {
-				t.Errorf("Expected message %q, got %q", tt.wantMessage, resp.Message)
+			if actionResponse.Message != testCase.expectedResponseMessage {
+				t.Errorf("Expected message %q, got %q", testCase.expectedResponseMessage, actionResponse.Message)
 			}
 
-			if tt.wantRel != "" {
-				if len(resp.Links) < 1 {
-					t.Fatalf("Expected at least 1 HATEOAS link, got %d", len(resp.Links))
+			if testCase.expectedLinkRel != "" {
+				if len(actionResponse.Links) < 1 {
+					t.Fatalf("Expected at least 1 HATEOAS link, got %d", len(actionResponse.Links))
 				}
-				if resp.Links[0].Rel != tt.wantRel {
-					t.Errorf("Expected link rel %q, got %q", tt.wantRel, resp.Links[0].Rel)
+				if actionResponse.Links[0].Rel != testCase.expectedLinkRel {
+					t.Errorf("Expected link rel %q, got %q", testCase.expectedLinkRel, actionResponse.Links[0].Rel)
+				}
+			}
+		})
+	}
+}
+
+func TestRequestMetrics(t *testing.T) {
+	testCases := []struct {
+		name               string
+		startServiceBefore bool
+		isStorageNil       bool
+		expectedStatusCode int
+	}{
+		{
+			name:               "success - fetch metrics when agent is running",
+			startServiceBefore: true,
+			isStorageNil:       false,
+			expectedStatusCode: http.StatusOK,
+		},
+		{
+			name:               "failure - storage not initialized when agent is stopped",
+			startServiceBefore: false,
+			isStorageNil:       true,
+			expectedStatusCode: http.StatusInternalServerError,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.name, func(t *testing.T) {
+			testLogger := newTestLogger()
+			agentRunner := newTestRunner(testLogger)
+			if testCase.isStorageNil {
+				agentRunner.Storage = nil
+			}
+			agentService := NewAgentService(testLogger, agentRunner)
+
+			if testCase.startServiceBefore {
+				_ = agentService.Start()
+				defer agentService.Stop()
+			}
+			restHandler := NewRestHandler(agentService)
+
+			httpRequest := httptest.NewRequest(http.MethodGet, "/api/v1/agent/metrics", nil)
+			responseRecorder := httptest.NewRecorder()
+
+			restHandler.Metrics(responseRecorder, httpRequest)
+			httpResponse := responseRecorder.Result()
+			defer httpResponse.Body.Close()
+
+			if httpResponse.StatusCode != testCase.expectedStatusCode {
+				t.Fatalf("Expected status %d, got %d", testCase.expectedStatusCode, httpResponse.StatusCode)
+			}
+
+			if httpResponse.StatusCode == http.StatusOK {
+				var metricsResponseBody MetricsResponse
+				if err := json.NewDecoder(httpResponse.Body).Decode(&metricsResponseBody); err != nil {
+					t.Fatalf("Failed to decode JSON: %v", err)
+				}
+
+				if metricsResponseBody.Data == nil {
+					metricsResponseBody.Data = make([]metrics.Metrics, 0)
+				}
+
+				if len(metricsResponseBody.Links) == 0 {
+					t.Errorf("Expected HATEOAS links in MetricsResponse")
 				}
 			}
 		})
