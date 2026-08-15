@@ -1,129 +1,53 @@
 package main
 
 import (
-	"context"
-	"encoding/json"
 	"errors"
 	"flag"
-	"fmt"
 	"log"
 	"log/slog"
 	"net/http"
 	"os"
-	"time"
 
 	"monitoring-system/internal/api"
+	"monitoring-system/internal/cli"
 	"monitoring-system/internal/config"
 	"monitoring-system/internal/logger"
 	"monitoring-system/internal/memory_storage"
-	"monitoring-system/internal/metrics"
 	"monitoring-system/internal/runner"
 )
 
 var Version = "dev"
 
 func main() {
-	// =========================================================================
-	// CLI CHEAT SHEET & COMMAND EXAMPLES:
-	// -------------------------------------------------------------------------
-	// 1. Run as a continuous HTTP server (daemon mode):
-	//    go run .\cmd\monitor-agent\main.go
-	//    go run .\cmd\monitor-agent\main.go -config configs/config.yaml
-	//
-	// 2. Run in single-collection mode (CLI / One-shot) and print to console:
-	//    go run .\cmd\monitor-agent\main.go -once -print-metrics=true
-	//
-	// 3. Run in single-collection mode and save output directly to a file:
-	//    go run .\cmd\monitor-agent\main.go -once -output metrics.txt
-	// =========================================================================
-
-	// Define command-line flags
-	printMetrics := flag.Bool("print-metrics", false, "Print collected metrics JSON to console in one-shot mode")
-	onceFlag := flag.Bool("once", false, "Collect metrics once (on-demand) and exit")
-	outputFile := flag.String("output", "", "Path to file where metrics JSON should be saved (used with -once)")
-	configPath := flag.String("config", "configs/config.yaml", "Path to configuration file")
-	flag.Parse()
 
 	// Initialize logger and configuration
 	loggerInstance := initLogger()
+	configPath := flag.String("config", "configs/config.yaml", "Path to configuration file")
 	cfg := loadConfig(*configPath)
-	r := &runner.Runner{
+	run := &runner.Runner{
 		Config:  *cfg,
 		Logger:  loggerInstance,
 		Storage: memory_storage.NewMemoryStorage(12, loggerInstance),
 	}
 
-	// Handle one-shot collection mode (on-demand / CLI)
+	// CLI and flags
+	printMetrics := flag.Bool("print-metrics", false, "Print collected metrics JSON to console in one-shot mode")
+	onceFlag := flag.Bool("once", false, "Collect metrics once (on-demand) and exit")
+	outputFile := flag.String("output", "", "Path to file where metrics JSON should be saved (used with -once)")
+	flag.Parse()
+
 	if *onceFlag {
-		loggerInstance.Info("running single metrics collection (one-shot)...", "version", Version)
-
-		collectionContext, collectionCancel := context.WithTimeout(context.Background(), cfg.Timeout)
-		defer collectionCancel()
-
-		data, err := metrics.Collect(collectionContext, cfg.Timeout)
-		if err != nil {
-			loggerInstance.Error("failed to collect single metrics", slog.String("error", err.Error()))
+		if err := cli.RunOneShot(loggerInstance, Version, cfg, *printMetrics, *outputFile); err != nil {
+			loggerInstance.Error("cli execution failed", slog.String("error", err.Error()))
 			os.Exit(1)
 		}
-		data.Timestamp = time.Now().UTC()
-
-		// Format metrics to indented JSON
-		jsonData, err := json.MarshalIndent(data, "", "  ")
-		if err != nil {
-			loggerInstance.Error("failed to marshal metrics to JSON", slog.String("error", err.Error()))
-			os.Exit(1)
-		}
-
-		// If an output file path is specified, write JSON to the file
-		if *outputFile != "" {
-			err := os.WriteFile(*outputFile, jsonData, 0600)
-			if err != nil {
-				loggerInstance.Error("failed to write metrics to file", slog.String("file", *outputFile), slog.String("error", err.Error()))
-				os.Exit(1)
-			}
-			loggerInstance.Info("successfully saved metrics to file", slog.String("file", *outputFile))
-		}
-
-		// Print to console if explicitly requested or if no output file was provided
-		if *printMetrics || *outputFile == "" {
-			fmt.Println(string(jsonData))
-		}
-
 		return
 	}
 
-	// =========================================================================
-	// HTTP SERVER (DAEMON MODE)
-	// =========================================================================
-	loggerInstance.Info("starting monitoring agent HTTP server...", "version", Version)
-
-	// 1. Init
-	agentSvc := api.NewAgentService(loggerInstance, r)
-	restHandler := api.NewRestHandler(agentSvc)
-
-	// 2. Run ServeMux
-	mux := http.NewServeMux()
-
-	mux.HandleFunc("GET /api/v1/health", restHandler.HealthCheck)
-	mux.HandleFunc("POST /api/v1/agent/start", restHandler.StartAgent)
-	mux.HandleFunc("POST /api/v1/agent/stop", restHandler.StopAgent)
-	mux.HandleFunc("GET /api/v1/agent/file", restHandler.GenerateFile)
-	mux.HandleFunc("GET /api/v1/agent/metrics", restHandler.Metrics)
-
-	// 3. Start server HTTP
-	serverAddr := ":8080"
-	loggerInstance.Info("server listening", slog.String("addr", serverAddr))
-
-	server := &http.Server{
-		Addr:              serverAddr,
-		Handler:           mux,
-		ReadHeaderTimeout: 3 * time.Second,
-		ReadTimeout:       5 * time.Second,
-		WriteTimeout:      10 * time.Second,
-		IdleTimeout:       15 * time.Second,
-	}
-
-	if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+	// Initialize server
+	server := api.NewServer(loggerInstance, run, ":8080")
+	err := server.ListenAndServe()
+	if err != nil && !errors.Is(err, http.ErrServerClosed) {
 		log.Fatalf("Server failed: %v", err)
 	}
 }
