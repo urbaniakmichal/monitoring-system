@@ -1,31 +1,33 @@
 package api
 
 import (
+	"fmt"
 	"log/slog"
-	"monitoring-system/internal/runner"
 	"net/http"
-	"time"
+
+	"monitoring-system/internal/config"
+	"monitoring-system/internal/runner"
 )
 
-func NewServer(log *slog.Logger, run *runner.Runner, serverAddr string) *http.Server {
+func NewServer(log *slog.Logger, run *runner.Runner, cfg config.ServerConfig) *http.Server {
 	agentSvc := NewAgentService(log, run)
 	restHandler := NewRestHandler(agentSvc)
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("GET /api/v1/health", restHandler.HealthCheck)
-	mux.HandleFunc("POST /api/v1/agent/start", restHandler.StartAgent)
-	mux.HandleFunc("POST /api/v1/agent/stop", restHandler.StopAgent)
-	mux.HandleFunc("GET /api/v1/agent/file", restHandler.GenerateFile)
-	mux.HandleFunc("GET /api/v1/agent/metrics", restHandler.Metrics)
+	mux.HandleFunc("GET "+ApiPathHealth, restHandler.HealthCheck)
+	mux.HandleFunc("POST "+ApiPathStart, restHandler.StartAgent)
+	mux.HandleFunc("POST "+ApiPathStop, restHandler.StopAgent)
+	mux.HandleFunc("GET "+ApiPathFile, restHandler.GenerateFile)
+	mux.HandleFunc("GET "+ApiPathMetrics, restHandler.Metrics)
 
-	log.Info("server listening", slog.String("addr", serverAddr))
+	serverAddr := fmt.Sprintf(":%d", cfg.Port)
 
 	return &http.Server{
 		Addr:              serverAddr,
 		Handler:           mux,
-		ReadHeaderTimeout: 3 * time.Second,
-		ReadTimeout:       5 * time.Second,
-		WriteTimeout:      10 * time.Second,
-		IdleTimeout:       15 * time.Second,
+		ReadHeaderTimeout: cfg.ReadHeaderTimeout,
+		ReadTimeout:       cfg.ReadTimeout,
+		WriteTimeout:      cfg.WriteTimeout,
+		IdleTimeout:       cfg.IdleTimeout,
 	}
 }

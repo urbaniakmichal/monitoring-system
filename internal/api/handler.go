@@ -21,12 +21,12 @@ func (rh *RestHandler) HealthCheck(res http.ResponseWriter, req *http.Request) {
 
 	statusStr := "stopped"
 	relAction := "start"
-	targetHref := "/api/v1/agent/start"
+	targetHref := ApiPathStart
 
 	if running {
 		statusStr = "running"
 		relAction = "stop"
-		targetHref = "/api/v1/agent/stop"
+		targetHref = ApiPathStop
 	}
 
 	resp := HealthResponse{
@@ -42,7 +42,7 @@ func (rh *RestHandler) HealthCheck(res http.ResponseWriter, req *http.Request) {
 				},
 				{
 					Rel:    "file",
-					Href:   "/api/v1/agent/file",
+					Href:   ApiPathFile,
 					Method: http.MethodGet,
 				},
 			},
@@ -72,12 +72,12 @@ func (rh *RestHandler) StartAgent(res http.ResponseWriter, req *http.Request) {
 			Links: []Link{
 				{
 					Rel:    "stop",
-					Href:   "/api/v1/agent/stop",
+					Href:   ApiPathStop,
 					Method: http.MethodPost,
 				},
 				{
 					Rel:    "metrics",
-					Href:   "/api/v1/agent/metrics",
+					Href:   ApiPathMetrics,
 					Method: http.MethodGet,
 				},
 			},
@@ -106,7 +106,7 @@ func (rh *RestHandler) StopAgent(res http.ResponseWriter, req *http.Request) {
 			Links: []Link{
 				{
 					Rel:    "start",
-					Href:   "/api/v1/agent/start",
+					Href:   ApiPathStart,
 					Method: http.MethodPost,
 				},
 			},
@@ -137,12 +137,12 @@ func (rh *RestHandler) Metrics(res http.ResponseWriter, req *http.Request) {
 			Links: []Link{
 				{
 					Rel:    "start",
-					Href:   "/api/v1/agent/start",
+					Href:   ApiPathStart,
 					Method: http.MethodPost,
 				},
 				{
 					Rel:    "stop",
-					Href:   "/api/v1/agent/stop",
+					Href:   ApiPathStop,
 					Method: http.MethodPost,
 				},
 			},

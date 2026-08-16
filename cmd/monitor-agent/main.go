@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"flag"
+	"fmt"
 	"log"
 	"log/slog"
 	"net/http"
@@ -22,21 +23,24 @@ import (
 var Version = "dev"
 
 func main() {
-
-	// CLI and flags
-	flag.Parse()
+	// 1. Define command-line flags
 	configPath := flag.String("config", "configs/config.yaml", "Path to configuration file")
 	printMetrics := flag.Bool("print-metrics", false, "Print collected metrics JSON to console in one-shot mode")
 	onceFlag := flag.Bool("once", false, "Collect metrics once (on-demand) and exit")
 	outputFile := flag.String("output", "", "Path to file where metrics JSON should be saved (used with -once)")
 
-	// Initialize logger and configuration
-	loggerInstance := initLogger()
+	// 2. Parse flags after defining them
+	flag.Parse()
+
+	// 3. Load configuration
 	cfg := loadConfig(*configPath)
+
+	// 4. Initialize components using loaded configuration
+	loggerInstance := initLogger(cfg.Logger)
 	run := &runner.Runner{
 		Config:  *cfg,
 		Logger:  loggerInstance,
-		Storage: memory_storage.NewMemoryStorage(12, loggerInstance),
+		Storage: memory_storage.NewMemoryStorage(cfg.Storage.RetentionHours, loggerInstance),
 	}
 
 	if *onceFlag {
@@ -47,18 +51,17 @@ func main() {
 		return
 	}
 
-	// Server
-	server := api.NewServer(loggerInstance, run, ":8080")
+	// 5. Start HTTP server and handle graceful shutdown
+	server := api.NewServer(loggerInstance, run, cfg.Server)
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
 	serverErrChan := make(chan error, 1)
 
 	go func() {
-		loggerInstance.Info("starting server", slog.String("port", ":8080"))
+		loggerInstance.Info("starting server", slog.String("port", fmt.Sprintf(":%d", cfg.Server.Port)))
 
 		err := server.ListenAndServe()
-
 		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			serverErrChan <- err
 		}
@@ -70,25 +73,23 @@ func main() {
 		os.Exit(1)
 
 	case <-ctx.Done():
-		loggerInstance.Info("initiating graceful shutdown start... (e.g. because Ctrl+C / SIGTERM )")
+		loggerInstance.Info("initiating graceful shutdown...")
 
 		shutdownCtx, cancelCtx := context.WithTimeout(context.Background(), cfg.Timeout)
 		defer cancelCtx()
-		err := server.Shutdown(shutdownCtx)
-		if err != nil {
+
+		if err := server.Shutdown(shutdownCtx); err != nil {
 			loggerInstance.Error("server shutdown error", slog.String("error", err.Error()))
 		}
-
-		loggerInstance.Info("initiating graceful shutdown done")
 	}
 
 	loggerInstance.Info("server shutdown complete")
 }
 
-func initLogger() *slog.Logger {
+func initLogger(cfg config.LoggerConfig) *slog.Logger {
 	logConfig := logger.Config{
-		Level:  "debug",
-		Format: "json",
+		Level:  cfg.Level,
+		Format: cfg.Format,
 	}
 
 	log := logger.NewLogger(logConfig, os.Stdout)
