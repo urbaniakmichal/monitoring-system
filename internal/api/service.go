@@ -13,6 +13,7 @@ type AgentService struct {
 	isRunning      bool
 	mutex          sync.RWMutex
 	cancelFunction context.CancelFunc
+	wg             sync.WaitGroup
 	customLog      *slog.Logger
 	runner         *runner.Runner
 }
@@ -25,8 +26,8 @@ func NewAgentService(log *slog.Logger, r *runner.Runner) *AgentService {
 }
 
 func (s *AgentService) IsRunning() bool {
-	s.mutex.Lock()
-	defer s.mutex.Unlock()
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
 	s.customLog.Info("AgentService.isRunning value is", "isRunning", s.isRunning)
 	return s.isRunning
 }
@@ -60,6 +61,8 @@ func (s *AgentService) Stop() error {
 	if s.cancelFunction != nil {
 		s.cancelFunction()
 	}
+
+	s.wg.Wait()
 
 	s.cancelFunction = nil
 	s.isRunning = false

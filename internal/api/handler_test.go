@@ -68,7 +68,7 @@ func TestRequestHealthCheck(t *testing.T) {
 			}
 			restHandler := NewRestHandler(agentService)
 
-			httpRequest := httptest.NewRequest(http.MethodGet, "/api/v1/health", nil)
+			httpRequest := httptest.NewRequest(http.MethodGet, ApiPathHealth, nil)
 			responseRecorder := httptest.NewRecorder()
 
 			restHandler.HealthCheck(responseRecorder, httpRequest)
@@ -138,7 +138,7 @@ func TestRequestStart(t *testing.T) {
 			}
 			restHandler := NewRestHandler(agentService)
 
-			httpRequest := httptest.NewRequest(http.MethodPost, "/api/v1/agent/start", nil)
+			httpRequest := httptest.NewRequest(http.MethodPost, ApiPathStart, nil)
 			responseRecorder := httptest.NewRecorder()
 
 			restHandler.StartAgent(responseRecorder, httpRequest)
@@ -206,7 +206,7 @@ func TestRequestStop(t *testing.T) {
 			}
 			restHandler := NewRestHandler(agentService)
 
-			httpRequest := httptest.NewRequest(http.MethodPost, "/api/v1/agent/stop", nil)
+			httpRequest := httptest.NewRequest(http.MethodPost, ApiPathStop, nil)
 			responseRecorder := httptest.NewRecorder()
 
 			restHandler.StopAgent(responseRecorder, httpRequest)
@@ -274,7 +274,7 @@ func TestRequestMetrics(t *testing.T) {
 			}
 			restHandler := NewRestHandler(agentService)
 
-			httpRequest := httptest.NewRequest(http.MethodGet, "/api/v1/agent/metrics", nil)
+			httpRequest := httptest.NewRequest(http.MethodGet, ApiPathMetrics, nil)
 			responseRecorder := httptest.NewRecorder()
 
 			restHandler.Metrics(responseRecorder, httpRequest)

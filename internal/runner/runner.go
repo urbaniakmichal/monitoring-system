@@ -25,51 +25,56 @@ func generateTraceID() string {
 	return hex.EncodeToString(bytes)
 }
 
-func (r Runner) Start(ctx context.Context) {
+func (r *Runner) Start(ctx context.Context) {
 	logger := r.Logger
 	if logger == nil {
 		logger = slog.Default()
 	}
 
-	ticker := time.NewTicker(r.Config.Interval)
-	defer ticker.Stop()
+	interval := r.Config.Interval
+	if interval <= 0 {
+		interval = 10 * time.Second
 
-	logger.Info("starting metrics collector", "interval", r.Config.Interval)
+		ticker := time.NewTicker(r.Config.Interval)
+		defer ticker.Stop()
 
-	for {
-		select {
-		case <-ctx.Done():
-			logger.Info("stopping metrics collector")
-			return
-		case <-ticker.C:
-			traceID := generateTraceID()
+		logger.Info("starting metrics collector", "interval", r.Config.Interval)
 
-			data, err := metrics.Collect(ctx, r.Config.Timeout)
-			if err != nil {
-				logger.Error("failed to collect metrics", "error", err)
-				continue
+		for {
+			select {
+			case <-ctx.Done():
+				logger.Info("stopping metrics collector")
+				return
+			case <-ticker.C:
+				traceID := generateTraceID()
+
+				data, err := metrics.Collect(ctx, r.Config.Timeout)
+				if err != nil {
+					logger.Error("failed to collect metrics", "error", err)
+					continue
+				}
+
+				data.TraceID = traceID
+				data.Timestamp = time.Now().UTC()
+
+				if r.Storage != nil {
+					r.Storage.Add(data)
+				}
+
+				metrics.RecordMetrics(data)
+
+				hostname := data.System.System.Hostname
+				if hostname == "" {
+					hostname = "unknown"
+				}
+
+				logger.Info(
+					"metrics collected successfully",
+					"trace_id", data.TraceID,
+					"timestamp", data.Timestamp,
+					"hostname", hostname,
+				)
 			}
-
-			data.TraceID = traceID
-			data.Timestamp = time.Now().UTC()
-
-			if r.Storage != nil {
-				r.Storage.Add(data)
-			}
-
-			metrics.RecordMetrics(data)
-
-			hostname := data.System.System.Hostname
-			if hostname == "" {
-				hostname = "unknown"
-			}
-
-			logger.Info(
-				"metrics collected successfully",
-				"trace_id", data.TraceID,
-				"timestamp", data.Timestamp,
-				"hostname", hostname,
-			)
 		}
 	}
 }
