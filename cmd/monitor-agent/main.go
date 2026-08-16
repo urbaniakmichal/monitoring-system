@@ -1,12 +1,15 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"flag"
 	"log"
 	"log/slog"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"monitoring-system/internal/api"
 	"monitoring-system/internal/cli"
@@ -20,21 +23,21 @@ var Version = "dev"
 
 func main() {
 
+	// CLI and flags
+	flag.Parse()
+	configPath := flag.String("config", "configs/config.yaml", "Path to configuration file")
+	printMetrics := flag.Bool("print-metrics", false, "Print collected metrics JSON to console in one-shot mode")
+	onceFlag := flag.Bool("once", false, "Collect metrics once (on-demand) and exit")
+	outputFile := flag.String("output", "", "Path to file where metrics JSON should be saved (used with -once)")
+
 	// Initialize logger and configuration
 	loggerInstance := initLogger()
-	configPath := flag.String("config", "configs/config.yaml", "Path to configuration file")
 	cfg := loadConfig(*configPath)
 	run := &runner.Runner{
 		Config:  *cfg,
 		Logger:  loggerInstance,
 		Storage: memory_storage.NewMemoryStorage(12, loggerInstance),
 	}
-
-	// CLI and flags
-	printMetrics := flag.Bool("print-metrics", false, "Print collected metrics JSON to console in one-shot mode")
-	onceFlag := flag.Bool("once", false, "Collect metrics once (on-demand) and exit")
-	outputFile := flag.String("output", "", "Path to file where metrics JSON should be saved (used with -once)")
-	flag.Parse()
 
 	if *onceFlag {
 		if err := cli.RunOneShot(loggerInstance, Version, cfg, *printMetrics, *outputFile); err != nil {
@@ -44,12 +47,42 @@ func main() {
 		return
 	}
 
-	// Initialize server
+	// Server
 	server := api.NewServer(loggerInstance, run, ":8080")
-	err := server.ListenAndServe()
-	if err != nil && !errors.Is(err, http.ErrServerClosed) {
-		log.Fatalf("Server failed: %v", err)
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	serverErrChan := make(chan error, 1)
+
+	go func() {
+		loggerInstance.Info("starting server", slog.String("port", ":8080"))
+
+		err := server.ListenAndServe()
+
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			serverErrChan <- err
+		}
+	}()
+
+	select {
+	case err := <-serverErrChan:
+		loggerInstance.Error("server failed to start", slog.String("error", err.Error()))
+		os.Exit(1)
+
+	case <-ctx.Done():
+		loggerInstance.Info("initiating graceful shutdown start... (e.g. because Ctrl+C / SIGTERM )")
+
+		shutdownCtx, cancelCtx := context.WithTimeout(context.Background(), cfg.Timeout)
+		defer cancelCtx()
+		err := server.Shutdown(shutdownCtx)
+		if err != nil {
+			loggerInstance.Error("server shutdown error", slog.String("error", err.Error()))
+		}
+
+		loggerInstance.Info("initiating graceful shutdown done")
 	}
+
+	loggerInstance.Info("server shutdown complete")
 }
 
 func initLogger() *slog.Logger {
