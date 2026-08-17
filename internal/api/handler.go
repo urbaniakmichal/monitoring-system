@@ -60,7 +60,8 @@ func (rh *RestHandler) StartAgent(res http.ResponseWriter, req *http.Request) {
 	if err := rh.as.Start(); err != nil {
 		res.WriteHeader(http.StatusBadRequest)
 		_ = json.NewEncoder(res).Encode(AgentActionResponse{
-			Message: err.Error(),
+			Message:   err.Error(),
+			Timestamp: time.Now().UTC(),
 		})
 		return
 	}
@@ -94,7 +95,8 @@ func (rh *RestHandler) StopAgent(res http.ResponseWriter, req *http.Request) {
 	if err := rh.as.Stop(); err != nil {
 		res.WriteHeader(http.StatusBadRequest)
 		_ = json.NewEncoder(res).Encode(AgentActionResponse{
-			Message: err.Error(),
+			Message:   err.Error(),
+			Timestamp: time.Now().UTC(),
 		})
 		return
 	}
@@ -124,7 +126,8 @@ func (rh *RestHandler) Metrics(res http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
 		_ = json.NewEncoder(res).Encode(AgentActionResponse{
-			Message: err.Error(),
+			Message:   err.Error(),
+			Timestamp: time.Now().UTC(),
 		})
 		return
 	}
