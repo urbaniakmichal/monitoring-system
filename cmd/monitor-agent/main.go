@@ -12,6 +12,8 @@ import (
 	"os/signal"
 	"syscall"
 
+	_ "monitoring-system/docs" // Register generated Swagger UI documentation
+
 	"monitoring-system/internal/api"
 	"monitoring-system/internal/cli"
 	"monitoring-system/internal/config"
@@ -22,6 +24,12 @@ import (
 
 var Version = "dev"
 
+// @title           Monitor Agent API
+// @version         1.0
+// @description     REST API for system, hardware, and software monitoring.
+
+// @host            localhost:8080
+// @BasePath        /
 func main() {
 	// 1. Define command-line flags
 	configPath := flag.String("config", "configs/config.yaml", "Path to configuration file")

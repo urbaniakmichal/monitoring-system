@@ -1,0 +1,794 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "API serwera do kontroli agenta monitorującego oraz pobierania zebranych metryk.",
+        "title": "Monitoring System API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost:8080",
+    "basePath": "/",
+    "paths": {
+        "/api/v1/agent/file": {
+            "get": {
+                "description": "Inicjuje generowanie pliku raportu przez agenta.",
+                "produces": [
+                    "multipart/form-data"
+                ],
+                "tags": [
+                    "agent"
+                ],
+                "summary": "Wygeneruj plik wyjściowy",
+                "responses": {
+                    "201": {
+                        "description": "Created"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/agent/metrics": {
+            "get": {
+                "description": "Zwraca tablicę wszystkich pobranych metryk z pamięci podręcznej.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "agent"
+                ],
+                "summary": "Pobierz zebrane metryki",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_api.MetricsResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/internal_api.AgentActionResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/agent/start": {
+            "post": {
+                "description": "Uruchamia pętlę zbierania metryk w tle.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "agent"
+                ],
+                "summary": "Uruchom agenta",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_api.AgentActionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/internal_api.AgentActionResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/agent/stop": {
+            "post": {
+                "description": "Zatrzymuje działającą pętlę agenta.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "agent"
+                ],
+                "summary": "Zatrzymaj agenta",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_api.AgentActionResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/internal_api.AgentActionResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/health": {
+            "get": {
+                "description": "Zwraca aktualny stan uruchomienia agenta (running/stopped) oraz linki nawigacyjne HATEOAS.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "agent"
+                ],
+                "summary": "Sprawdź status agenta",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/internal_api.HealthResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "internal_api.AgentActionResponse": {
+            "type": "object",
+            "properties": {
+                "_links": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_api.Link"
+                    }
+                },
+                "message": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_api.HealthResponse": {
+            "type": "object",
+            "properties": {
+                "_links": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_api.Link"
+                    }
+                },
+                "status": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "uptime": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_api.Link": {
+            "type": "object",
+            "properties": {
+                "href": {
+                    "type": "string"
+                },
+                "method": {
+                    "type": "string"
+                },
+                "rel": {
+                    "type": "string"
+                }
+            }
+        },
+        "internal_api.MetricsResponse": {
+            "type": "object",
+            "properties": {
+                "_links": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/internal_api.Link"
+                    }
+                },
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/monitoring-system_internal_metrics.Metrics"
+                    }
+                },
+                "message": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                }
+            }
+        },
+        "monitoring-system_internal_hardware.CompleteHardwareInformation": {
+            "type": "object",
+            "properties": {
+                "battery": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/monitoring-system_internal_hardware_battery.BatteryInformation"
+                    }
+                },
+                "bios": {
+                    "$ref": "#/definitions/monitoring-system_internal_hardware_bios.BiosInformation"
+                },
+                "cpu": {
+                    "$ref": "#/definitions/monitoring-system_internal_hardware_cpu.CPUInformation"
+                },
+                "gpu": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/monitoring-system_internal_hardware_gpu.GPUInformation"
+                    }
+                },
+                "io": {
+                    "$ref": "#/definitions/monitoring-system_internal_hardware_io.IOStatistics"
+                },
+                "memory": {
+                    "$ref": "#/definitions/monitoring-system_internal_hardware_memory.MemoryInformation"
+                },
+                "motherboard": {
+                    "$ref": "#/definitions/monitoring-system_internal_hardware_motherboard.MotherboardInformation"
+                },
+                "network": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/monitoring-system_internal_hardware_network.NetworkInformation"
+                    }
+                },
+                "peripherals": {
+                    "$ref": "#/definitions/monitoring-system_internal_hardware_peripherals.PeripheralsInformation"
+                },
+                "sensors": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/monitoring-system_internal_hardware_sensors.SensorInformation"
+                    }
+                },
+                "storage": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/monitoring-system_internal_hardware_storage.StorageInformation"
+                    }
+                }
+            }
+        },
+        "monitoring-system_internal_hardware_battery.BatteryInformation": {
+            "type": "object",
+            "properties": {
+                "IsCharging": {
+                    "type": "boolean"
+                },
+                "Name": {
+                    "type": "string"
+                },
+                "Percent": {
+                    "type": "number"
+                },
+                "Status": {
+                    "type": "string"
+                }
+            }
+        },
+        "monitoring-system_internal_hardware_bios.BiosInformation": {
+            "type": "object",
+            "properties": {
+                "Manufacturer": {
+                    "type": "string"
+                },
+                "ReleaseDate": {
+                    "type": "string"
+                },
+                "SerialNumber": {
+                    "type": "string"
+                },
+                "Version": {
+                    "type": "string"
+                }
+            }
+        },
+        "monitoring-system_internal_hardware_cpu.CPUInformation": {
+            "type": "object",
+            "properties": {
+                "Cores": {
+                    "type": "integer"
+                },
+                "ModelName": {
+                    "type": "string"
+                },
+                "UsagePercent": {
+                    "type": "number"
+                }
+            }
+        },
+        "monitoring-system_internal_hardware_gpu.GPUInformation": {
+            "type": "object",
+            "properties": {
+                "Name": {
+                    "type": "string"
+                },
+                "Vendor": {
+                    "type": "string"
+                }
+            }
+        },
+        "monitoring-system_internal_hardware_io.DiskIO": {
+            "type": "object",
+            "properties": {
+                "ReadBytes": {
+                    "type": "integer"
+                },
+                "WriteBytes": {
+                    "type": "integer"
+                }
+            }
+        },
+        "monitoring-system_internal_hardware_io.IOStatistics": {
+            "type": "object",
+            "properties": {
+                "Disk": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/monitoring-system_internal_hardware_io.DiskIO"
+                    }
+                },
+                "Network": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/monitoring-system_internal_hardware_io.NetworkIO"
+                    }
+                }
+            }
+        },
+        "monitoring-system_internal_hardware_io.NetworkIO": {
+            "type": "object",
+            "properties": {
+                "BytesRecv": {
+                    "type": "integer"
+                },
+                "BytesSent": {
+                    "type": "integer"
+                }
+            }
+        },
+        "monitoring-system_internal_hardware_memory.MemoryInformation": {
+            "type": "object",
+            "properties": {
+                "AvailableMB": {
+                    "type": "integer"
+                },
+                "TotalMB": {
+                    "type": "integer"
+                },
+                "UsedPercent": {
+                    "type": "number"
+                }
+            }
+        },
+        "monitoring-system_internal_hardware_motherboard.MotherboardInformation": {
+            "type": "object",
+            "properties": {
+                "Manufacturer": {
+                    "type": "string"
+                },
+                "Product": {
+                    "type": "string"
+                },
+                "Version": {
+                    "type": "string"
+                }
+            }
+        },
+        "monitoring-system_internal_hardware_network.NetworkInformation": {
+            "type": "object",
+            "properties": {
+                "Flags": {
+                    "type": "string"
+                },
+                "HardwareAddr": {
+                    "type": "string"
+                },
+                "IPAddresses": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "Name": {
+                    "type": "string"
+                }
+            }
+        },
+        "monitoring-system_internal_hardware_peripherals.DisplayInformation": {
+            "type": "object",
+            "properties": {
+                "IsPrimary": {
+                    "type": "boolean"
+                },
+                "Name": {
+                    "type": "string"
+                },
+                "Resolution": {
+                    "type": "string"
+                }
+            }
+        },
+        "monitoring-system_internal_hardware_peripherals.PeripheralsInformation": {
+            "type": "object",
+            "properties": {
+                "Displays": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/monitoring-system_internal_hardware_peripherals.DisplayInformation"
+                    }
+                },
+                "USB": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/monitoring-system_internal_hardware_peripherals.USBDeviceInformation"
+                    }
+                }
+            }
+        },
+        "monitoring-system_internal_hardware_peripherals.USBDeviceInformation": {
+            "type": "object",
+            "properties": {
+                "DeviceID": {
+                    "type": "string"
+                },
+                "Manufacturer": {
+                    "type": "string"
+                },
+                "Name": {
+                    "type": "string"
+                }
+            }
+        },
+        "monitoring-system_internal_hardware_sensors.SensorInformation": {
+            "type": "object",
+            "properties": {
+                "Name": {
+                    "type": "string"
+                },
+                "Unit": {
+                    "type": "string"
+                },
+                "Value": {
+                    "type": "number"
+                }
+            }
+        },
+        "monitoring-system_internal_hardware_storage.StorageInformation": {
+            "type": "object",
+            "properties": {
+                "Device": {
+                    "type": "string"
+                },
+                "FreeMB": {
+                    "type": "integer"
+                },
+                "Path": {
+                    "type": "string"
+                },
+                "TotalMB": {
+                    "type": "integer"
+                },
+                "UsedPercent": {
+                    "type": "number"
+                }
+            }
+        },
+        "monitoring-system_internal_metrics.Metrics": {
+            "type": "object",
+            "properties": {
+                "hardware": {
+                    "$ref": "#/definitions/monitoring-system_internal_hardware.CompleteHardwareInformation"
+                },
+                "software": {
+                    "$ref": "#/definitions/monitoring-system_internal_software.CompleteSoftwareInformation"
+                },
+                "system": {
+                    "$ref": "#/definitions/monitoring-system_internal_system.CompleteSystemInformation"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "trace_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "monitoring-system_internal_software.CompleteSoftwareInformation": {
+            "type": "object",
+            "properties": {
+                "installedApplications": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/monitoring-system_internal_software_applications.ApplicationInformation"
+                    }
+                },
+                "networkAdapters": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/monitoring-system_internal_software_network.NetworkAdapterInformation"
+                    }
+                },
+                "operatingSystem": {
+                    "$ref": "#/definitions/monitoring-system_internal_software_operating_system.OperatingSystemInformation"
+                },
+                "scheduledTasks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/monitoring-system_internal_software_tasks.ScheduledTaskInformation"
+                    }
+                },
+                "startupCommands": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/monitoring-system_internal_software_startup.StartupCommandInformation"
+                    }
+                },
+                "systemDrivers": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/monitoring-system_internal_software_drivers.DriverInformation"
+                    }
+                },
+                "systemServices": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/monitoring-system_internal_software_services.ServiceInformation"
+                    }
+                },
+                "systemUpdates": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/monitoring-system_internal_software_updates.SystemUpdateInformation"
+                    }
+                }
+            }
+        },
+        "monitoring-system_internal_software_applications.ApplicationInformation": {
+            "type": "object",
+            "properties": {
+                "DisplayName": {
+                    "type": "string"
+                },
+                "DisplayVersion": {
+                    "type": "string"
+                },
+                "InstallDate": {
+                    "type": "string"
+                },
+                "Publisher": {
+                    "type": "string"
+                }
+            }
+        },
+        "monitoring-system_internal_software_drivers.DriverInformation": {
+            "type": "object",
+            "properties": {
+                "DeviceName": {
+                    "type": "string"
+                },
+                "DriverName": {
+                    "type": "string"
+                },
+                "DriverVersion": {
+                    "type": "string"
+                },
+                "Manufacturer": {
+                    "type": "string"
+                }
+            }
+        },
+        "monitoring-system_internal_software_network.NetworkAdapterInformation": {
+            "type": "object",
+            "properties": {
+                "Caption": {
+                    "type": "string"
+                },
+                "DHCPEnabled": {
+                    "type": "string"
+                },
+                "Description": {
+                    "type": "string"
+                },
+                "IPAddress": {
+                    "type": "string"
+                },
+                "MACAddress": {
+                    "type": "string"
+                }
+            }
+        },
+        "monitoring-system_internal_software_operating_system.OperatingSystemInformation": {
+            "type": "object",
+            "properties": {
+                "BuildNumber": {
+                    "type": "string"
+                },
+                "Caption": {
+                    "type": "string"
+                },
+                "InstallDate": {
+                    "type": "string"
+                },
+                "LastBootUpTime": {
+                    "type": "string"
+                },
+                "Manufacturer": {
+                    "type": "string"
+                },
+                "OSArchitecture": {
+                    "type": "string"
+                },
+                "Version": {
+                    "type": "string"
+                }
+            }
+        },
+        "monitoring-system_internal_software_services.ServiceInformation": {
+            "type": "object",
+            "properties": {
+                "DisplayName": {
+                    "type": "string"
+                },
+                "Name": {
+                    "type": "string"
+                },
+                "StartMode": {
+                    "type": "string"
+                },
+                "StartName": {
+                    "type": "string"
+                },
+                "State": {
+                    "type": "string"
+                }
+            }
+        },
+        "monitoring-system_internal_software_startup.StartupCommandInformation": {
+            "type": "object",
+            "properties": {
+                "Command": {
+                    "type": "string"
+                },
+                "Location": {
+                    "type": "string"
+                },
+                "Name": {
+                    "type": "string"
+                },
+                "User": {
+                    "type": "string"
+                }
+            }
+        },
+        "monitoring-system_internal_software_tasks.ScheduledTaskInformation": {
+            "type": "object",
+            "properties": {
+                "State": {
+                    "type": "integer"
+                },
+                "TaskName": {
+                    "type": "string"
+                },
+                "TaskPath": {
+                    "type": "string"
+                }
+            }
+        },
+        "monitoring-system_internal_software_updates.SystemUpdateInformation": {
+            "type": "object",
+            "properties": {
+                "Description": {
+                    "type": "string"
+                },
+                "HotFixID": {
+                    "type": "string"
+                },
+                "InstalledBy": {
+                    "type": "string"
+                },
+                "InstalledOn": {
+                    "type": "string"
+                }
+            }
+        },
+        "monitoring-system_internal_system.CompleteSystemInformation": {
+            "type": "object",
+            "properties": {
+                "load": {
+                    "$ref": "#/definitions/monitoring-system_internal_system_load.LoadInformation"
+                },
+                "system": {
+                    "$ref": "#/definitions/monitoring-system_internal_system_os.SystemInformation"
+                },
+                "users": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/monitoring-system_internal_system_users.UserInformation"
+                    }
+                }
+            }
+        },
+        "monitoring-system_internal_system_load.LoadInformation": {
+            "type": "object",
+            "properties": {
+                "Load1": {
+                    "type": "number"
+                },
+                "Load15": {
+                    "type": "number"
+                },
+                "Load5": {
+                    "type": "number"
+                }
+            }
+        },
+        "monitoring-system_internal_system_os.ProcessInformation": {
+            "type": "object",
+            "properties": {
+                "CPUPercent": {
+                    "type": "number"
+                },
+                "MemoryMB": {
+                    "type": "integer"
+                },
+                "Name": {
+                    "type": "string"
+                },
+                "PID": {
+                    "type": "integer"
+                }
+            }
+        },
+        "monitoring-system_internal_system_os.SystemInformation": {
+            "type": "object",
+            "properties": {
+                "Architecture": {
+                    "type": "string"
+                },
+                "Hostname": {
+                    "type": "string"
+                },
+                "OS": {
+                    "type": "string"
+                },
+                "TopProcesses": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/monitoring-system_internal_system_os.ProcessInformation"
+                    }
+                },
+                "Uptime": {
+                    "type": "string"
+                }
+            }
+        },
+        "monitoring-system_internal_system_users.UserInformation": {
+            "type": "object",
+            "properties": {
+                "Host": {
+                    "type": "string"
+                },
+                "Terminal": {
+                    "type": "string"
+                },
+                "Username": {
+                    "type": "string"
+                }
+            }
+        }
+    }
+}

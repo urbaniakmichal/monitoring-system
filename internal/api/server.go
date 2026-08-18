@@ -3,10 +3,11 @@ package api
 import (
 	"fmt"
 	"log/slog"
-	"net/http"
-
 	"monitoring-system/internal/config"
 	"monitoring-system/internal/runner"
+	"net/http"
+
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 func NewServer(log *slog.Logger, run *runner.Runner, cfg config.ServerConfig) *http.Server {
@@ -19,6 +20,8 @@ func NewServer(log *slog.Logger, run *runner.Runner, cfg config.ServerConfig) *h
 	mux.HandleFunc("POST "+ApiPathStop, restHandler.StopAgent)
 	mux.HandleFunc("GET "+ApiPathFile, restHandler.GenerateFile)
 	mux.HandleFunc("GET "+ApiPathMetrics, restHandler.Metrics)
+
+	mux.HandleFunc("/swagger/", httpSwagger.WrapHandler)
 
 	serverAddr := fmt.Sprintf(":%d", cfg.Port)
 
