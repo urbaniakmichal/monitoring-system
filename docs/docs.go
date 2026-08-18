@@ -17,14 +17,14 @@ const docTemplate = `{
     "paths": {
         "/api/v1/agent/file": {
             "get": {
-                "description": "Inicjuje generowanie pliku raportu przez agenta.",
+                "description": "Triggers report file generation by the agent.",
                 "produces": [
                     "multipart/form-data"
                 ],
                 "tags": [
                     "agent"
                 ],
-                "summary": "Wygeneruj plik wyjściowy",
+                "summary": "Generate output file",
                 "responses": {
                     "201": {
                         "description": "Created"
@@ -43,14 +43,14 @@ const docTemplate = `{
         },
         "/api/v1/agent/metrics": {
             "get": {
-                "description": "Zwraca tablicę wszystkich pobranych metryk z pamięci podręcznej.",
+                "description": "Returns an array of all collected metrics from cache.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "agent"
                 ],
-                "summary": "Pobierz zebrane metryki",
+                "summary": "Get collected metrics",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -69,14 +69,14 @@ const docTemplate = `{
         },
         "/api/v1/agent/start": {
             "post": {
-                "description": "Uruchamia pętlę zbierania metryk w tle.",
+                "description": "Starts background metrics collection loop.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "agent"
                 ],
-                "summary": "Uruchom agenta",
+                "summary": "Start agent",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -95,14 +95,14 @@ const docTemplate = `{
         },
         "/api/v1/agent/stop": {
             "post": {
-                "description": "Zatrzymuje działającą pętlę agenta.",
+                "description": "Stops the active agent loop.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "agent"
                 ],
-                "summary": "Zatrzymaj agenta",
+                "summary": "Stop agent",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -121,14 +121,14 @@ const docTemplate = `{
         },
         "/api/v1/health": {
             "get": {
-                "description": "Zwraca aktualny stan uruchomienia agenta (running/stopped) oraz linki nawigacyjne HATEOAS.",
+                "description": "Returns the current agent running state (running/stopped) along with HATEOAS navigation links.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "agent"
                 ],
-                "summary": "Sprawdź status agenta",
+                "summary": "Check agent status",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -805,8 +805,8 @@ var SwaggerInfo = &swag.Spec{
 	Host:             "localhost:8080",
 	BasePath:         "/",
 	Schemes:          []string{},
-	Title:            "Monitoring System API",
-	Description:      "API serwera do kontroli agenta monitorującego oraz pobierania zebranych metryk.",
+	Title:            "Monitor Agent API",
+	Description:      "REST API for system, hardware, and software monitoring.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",
