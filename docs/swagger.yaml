@@ -1,0 +1,517 @@
+basePath: /
+definitions:
+  internal_api.AgentActionResponse:
+    properties:
+      _links:
+        items:
+          $ref: '#/definitions/internal_api.Link'
+        type: array
+      message:
+        type: string
+      timestamp:
+        type: string
+    type: object
+  internal_api.HealthResponse:
+    properties:
+      _links:
+        items:
+          $ref: '#/definitions/internal_api.Link'
+        type: array
+      status:
+        type: string
+      timestamp:
+        type: string
+      uptime:
+        type: string
+    type: object
+  internal_api.Link:
+    properties:
+      href:
+        type: string
+      method:
+        type: string
+      rel:
+        type: string
+    type: object
+  internal_api.MetricsResponse:
+    properties:
+      _links:
+        items:
+          $ref: '#/definitions/internal_api.Link'
+        type: array
+      data:
+        items:
+          $ref: '#/definitions/monitoring-system_internal_metrics.Metrics'
+        type: array
+      message:
+        type: string
+      timestamp:
+        type: string
+    type: object
+  monitoring-system_internal_hardware.CompleteHardwareInformation:
+    properties:
+      battery:
+        items:
+          $ref: '#/definitions/monitoring-system_internal_hardware_battery.BatteryInformation'
+        type: array
+      bios:
+        $ref: '#/definitions/monitoring-system_internal_hardware_bios.BiosInformation'
+      cpu:
+        $ref: '#/definitions/monitoring-system_internal_hardware_cpu.CPUInformation'
+      gpu:
+        items:
+          $ref: '#/definitions/monitoring-system_internal_hardware_gpu.GPUInformation'
+        type: array
+      io:
+        $ref: '#/definitions/monitoring-system_internal_hardware_io.IOStatistics'
+      memory:
+        $ref: '#/definitions/monitoring-system_internal_hardware_memory.MemoryInformation'
+      motherboard:
+        $ref: '#/definitions/monitoring-system_internal_hardware_motherboard.MotherboardInformation'
+      network:
+        items:
+          $ref: '#/definitions/monitoring-system_internal_hardware_network.NetworkInformation'
+        type: array
+      peripherals:
+        $ref: '#/definitions/monitoring-system_internal_hardware_peripherals.PeripheralsInformation'
+      sensors:
+        items:
+          $ref: '#/definitions/monitoring-system_internal_hardware_sensors.SensorInformation'
+        type: array
+      storage:
+        items:
+          $ref: '#/definitions/monitoring-system_internal_hardware_storage.StorageInformation'
+        type: array
+    type: object
+  monitoring-system_internal_hardware_battery.BatteryInformation:
+    properties:
+      IsCharging:
+        type: boolean
+      Name:
+        type: string
+      Percent:
+        type: number
+      Status:
+        type: string
+    type: object
+  monitoring-system_internal_hardware_bios.BiosInformation:
+    properties:
+      Manufacturer:
+        type: string
+      ReleaseDate:
+        type: string
+      SerialNumber:
+        type: string
+      Version:
+        type: string
+    type: object
+  monitoring-system_internal_hardware_cpu.CPUInformation:
+    properties:
+      Cores:
+        type: integer
+      ModelName:
+        type: string
+      UsagePercent:
+        type: number
+    type: object
+  monitoring-system_internal_hardware_gpu.GPUInformation:
+    properties:
+      Name:
+        type: string
+      Vendor:
+        type: string
+    type: object
+  monitoring-system_internal_hardware_io.DiskIO:
+    properties:
+      ReadBytes:
+        type: integer
+      WriteBytes:
+        type: integer
+    type: object
+  monitoring-system_internal_hardware_io.IOStatistics:
+    properties:
+      Disk:
+        additionalProperties:
+          $ref: '#/definitions/monitoring-system_internal_hardware_io.DiskIO'
+        type: object
+      Network:
+        additionalProperties:
+          $ref: '#/definitions/monitoring-system_internal_hardware_io.NetworkIO'
+        type: object
+    type: object
+  monitoring-system_internal_hardware_io.NetworkIO:
+    properties:
+      BytesRecv:
+        type: integer
+      BytesSent:
+        type: integer
+    type: object
+  monitoring-system_internal_hardware_memory.MemoryInformation:
+    properties:
+      AvailableMB:
+        type: integer
+      TotalMB:
+        type: integer
+      UsedPercent:
+        type: number
+    type: object
+  monitoring-system_internal_hardware_motherboard.MotherboardInformation:
+    properties:
+      Manufacturer:
+        type: string
+      Product:
+        type: string
+      Version:
+        type: string
+    type: object
+  monitoring-system_internal_hardware_network.NetworkInformation:
+    properties:
+      Flags:
+        type: string
+      HardwareAddr:
+        type: string
+      IPAddresses:
+        items:
+          type: string
+        type: array
+      Name:
+        type: string
+    type: object
+  monitoring-system_internal_hardware_peripherals.DisplayInformation:
+    properties:
+      IsPrimary:
+        type: boolean
+      Name:
+        type: string
+      Resolution:
+        type: string
+    type: object
+  monitoring-system_internal_hardware_peripherals.PeripheralsInformation:
+    properties:
+      Displays:
+        items:
+          $ref: '#/definitions/monitoring-system_internal_hardware_peripherals.DisplayInformation'
+        type: array
+      USB:
+        items:
+          $ref: '#/definitions/monitoring-system_internal_hardware_peripherals.USBDeviceInformation'
+        type: array
+    type: object
+  monitoring-system_internal_hardware_peripherals.USBDeviceInformation:
+    properties:
+      DeviceID:
+        type: string
+      Manufacturer:
+        type: string
+      Name:
+        type: string
+    type: object
+  monitoring-system_internal_hardware_sensors.SensorInformation:
+    properties:
+      Name:
+        type: string
+      Unit:
+        type: string
+      Value:
+        type: number
+    type: object
+  monitoring-system_internal_hardware_storage.StorageInformation:
+    properties:
+      Device:
+        type: string
+      FreeMB:
+        type: integer
+      Path:
+        type: string
+      TotalMB:
+        type: integer
+      UsedPercent:
+        type: number
+    type: object
+  monitoring-system_internal_metrics.Metrics:
+    properties:
+      hardware:
+        $ref: '#/definitions/monitoring-system_internal_hardware.CompleteHardwareInformation'
+      software:
+        $ref: '#/definitions/monitoring-system_internal_software.CompleteSoftwareInformation'
+      system:
+        $ref: '#/definitions/monitoring-system_internal_system.CompleteSystemInformation'
+      timestamp:
+        type: string
+      trace_id:
+        type: string
+    type: object
+  monitoring-system_internal_software.CompleteSoftwareInformation:
+    properties:
+      installedApplications:
+        items:
+          $ref: '#/definitions/monitoring-system_internal_software_applications.ApplicationInformation'
+        type: array
+      networkAdapters:
+        items:
+          $ref: '#/definitions/monitoring-system_internal_software_network.NetworkAdapterInformation'
+        type: array
+      operatingSystem:
+        $ref: '#/definitions/monitoring-system_internal_software_operating_system.OperatingSystemInformation'
+      scheduledTasks:
+        items:
+          $ref: '#/definitions/monitoring-system_internal_software_tasks.ScheduledTaskInformation'
+        type: array
+      startupCommands:
+        items:
+          $ref: '#/definitions/monitoring-system_internal_software_startup.StartupCommandInformation'
+        type: array
+      systemDrivers:
+        items:
+          $ref: '#/definitions/monitoring-system_internal_software_drivers.DriverInformation'
+        type: array
+      systemServices:
+        items:
+          $ref: '#/definitions/monitoring-system_internal_software_services.ServiceInformation'
+        type: array
+      systemUpdates:
+        items:
+          $ref: '#/definitions/monitoring-system_internal_software_updates.SystemUpdateInformation'
+        type: array
+    type: object
+  monitoring-system_internal_software_applications.ApplicationInformation:
+    properties:
+      DisplayName:
+        type: string
+      DisplayVersion:
+        type: string
+      InstallDate:
+        type: string
+      Publisher:
+        type: string
+    type: object
+  monitoring-system_internal_software_drivers.DriverInformation:
+    properties:
+      DeviceName:
+        type: string
+      DriverName:
+        type: string
+      DriverVersion:
+        type: string
+      Manufacturer:
+        type: string
+    type: object
+  monitoring-system_internal_software_network.NetworkAdapterInformation:
+    properties:
+      Caption:
+        type: string
+      DHCPEnabled:
+        type: string
+      Description:
+        type: string
+      IPAddress:
+        type: string
+      MACAddress:
+        type: string
+    type: object
+  monitoring-system_internal_software_operating_system.OperatingSystemInformation:
+    properties:
+      BuildNumber:
+        type: string
+      Caption:
+        type: string
+      InstallDate:
+        type: string
+      LastBootUpTime:
+        type: string
+      Manufacturer:
+        type: string
+      OSArchitecture:
+        type: string
+      Version:
+        type: string
+    type: object
+  monitoring-system_internal_software_services.ServiceInformation:
+    properties:
+      DisplayName:
+        type: string
+      Name:
+        type: string
+      StartMode:
+        type: string
+      StartName:
+        type: string
+      State:
+        type: string
+    type: object
+  monitoring-system_internal_software_startup.StartupCommandInformation:
+    properties:
+      Command:
+        type: string
+      Location:
+        type: string
+      Name:
+        type: string
+      User:
+        type: string
+    type: object
+  monitoring-system_internal_software_tasks.ScheduledTaskInformation:
+    properties:
+      State:
+        type: integer
+      TaskName:
+        type: string
+      TaskPath:
+        type: string
+    type: object
+  monitoring-system_internal_software_updates.SystemUpdateInformation:
+    properties:
+      Description:
+        type: string
+      HotFixID:
+        type: string
+      InstalledBy:
+        type: string
+      InstalledOn:
+        type: string
+    type: object
+  monitoring-system_internal_system.CompleteSystemInformation:
+    properties:
+      load:
+        $ref: '#/definitions/monitoring-system_internal_system_load.LoadInformation'
+      system:
+        $ref: '#/definitions/monitoring-system_internal_system_os.SystemInformation'
+      users:
+        items:
+          $ref: '#/definitions/monitoring-system_internal_system_users.UserInformation'
+        type: array
+    type: object
+  monitoring-system_internal_system_load.LoadInformation:
+    properties:
+      Load1:
+        type: number
+      Load5:
+        type: number
+      Load15:
+        type: number
+    type: object
+  monitoring-system_internal_system_os.ProcessInformation:
+    properties:
+      CPUPercent:
+        type: number
+      MemoryMB:
+        type: integer
+      Name:
+        type: string
+      PID:
+        type: integer
+    type: object
+  monitoring-system_internal_system_os.SystemInformation:
+    properties:
+      Architecture:
+        type: string
+      Hostname:
+        type: string
+      OS:
+        type: string
+      TopProcesses:
+        items:
+          $ref: '#/definitions/monitoring-system_internal_system_os.ProcessInformation'
+        type: array
+      Uptime:
+        type: string
+    type: object
+  monitoring-system_internal_system_users.UserInformation:
+    properties:
+      Host:
+        type: string
+      Terminal:
+        type: string
+      Username:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: REST API for system, hardware, and software monitoring.
+  title: Monitor Agent API
+  version: "1.0"
+paths:
+  /api/v1/agent/file:
+    get:
+      description: Triggers report file generation by the agent.
+      produces:
+      - multipart/form-data
+      responses:
+        "201":
+          description: Created
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Generate output file
+      tags:
+      - agent
+  /api/v1/agent/metrics:
+    get:
+      description: Returns an array of all collected metrics from cache.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_api.MetricsResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/internal_api.AgentActionResponse'
+      summary: Get collected metrics
+      tags:
+      - agent
+  /api/v1/agent/start:
+    post:
+      description: Starts background metrics collection loop.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_api.AgentActionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_api.AgentActionResponse'
+      summary: Start agent
+      tags:
+      - agent
+  /api/v1/agent/stop:
+    post:
+      description: Stops the active agent loop.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_api.AgentActionResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/internal_api.AgentActionResponse'
+      summary: Stop agent
+      tags:
+      - agent
+  /api/v1/health:
+    get:
+      description: Returns the current agent running state (running/stopped) along
+        with HATEOAS navigation links.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/internal_api.HealthResponse'
+      summary: Check agent status
+      tags:
+      - agent
+swagger: "2.0"

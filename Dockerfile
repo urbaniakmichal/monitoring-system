@@ -6,7 +6,13 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 
+# Install swag tool
+RUN go install github.com/swaggo/swag/cmd/swag@latest
+
 COPY . .
+
+# Generate Swagger docs before building binary
+RUN swag init -g cmd/monitor-agent/main.go --parseDependency --parseInternal
 
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o monitor-system ./cmd/monitor-agent
 

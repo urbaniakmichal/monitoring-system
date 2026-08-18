@@ -7,21 +7,48 @@ on:
     branches: [main]
 
 jobs:
+  swagger-check:
+    name: Verify Swagger Docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Install Swag CLI
+        run: go install github.com/swaggo/swag/cmd/swag@latest
+
+      - name: Check Swagger diff
+        run: |
+          swag init -g cmd/monitor-agent/main.go --parseDependency --parseInternal
+          git diff --exit-code docs/ || (echo "Swagger docs are out of date! Run 'make swagger' and commit your changes." && exit 1)
+
   lint:
     name: Lint Code
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
       - name: Set up Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
           cache: true
 
+      - name: Install Swag CLI
+        run: go install github.com/swaggo/swag/cmd/swag@latest
+
+      - name: Generate Swagger Docs
+        run: swag init -g cmd/monitor-agent/main.go --parseDependency --parseInternal
+
       - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v9
+        uses: golangci/golangci-lint-action@v6
 
   test:
     name: Tests (${{ matrix.os }})
@@ -31,13 +58,19 @@ jobs:
         os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v4
 
       - name: Set up Go
-        uses: actions/setup-go@v6
+        uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
           cache: true
+
+      - name: Install Swag CLI
+        run: go install github.com/swaggo/swag/cmd/swag@latest
+
+      - name: Generate Swagger Docs
+        run: swag init -g cmd/monitor-agent/main.go --parseDependency --parseInternal
 
       - name: Run Unit Tests
         run: go test -v -race -tags="unit" ./...
