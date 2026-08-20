@@ -61,12 +61,16 @@ func TestRequestHealthCheck(t *testing.T) {
 			testLogger := newTestLogger()
 			agentRunner := newTestRunner(testLogger)
 			agentService := NewAgentService(testLogger, agentRunner)
+			restHandler := NewRestHandler(agentService)
 
 			if testCase.startServiceBefore {
-				_ = agentService.Start()
+				// Uruchomienie przez handler, aby poprawnie zainicjalizować rh.startTime
+				httpRequestStart := httptest.NewRequest(http.MethodPost, ApiPathStart, nil)
+				recStart := httptest.NewRecorder()
+				restHandler.StartAgent(recStart, httpRequestStart)
+				time.Sleep(100 * time.Millisecond)
 				defer agentService.Stop()
 			}
-			restHandler := NewRestHandler(agentService)
 
 			httpRequest := httptest.NewRequest(http.MethodGet, ApiPathHealth, nil)
 			responseRecorder := httptest.NewRecorder()
@@ -131,12 +135,15 @@ func TestRequestStart(t *testing.T) {
 			testLogger := newTestLogger()
 			agentRunner := newTestRunner(testLogger)
 			agentService := NewAgentService(testLogger, agentRunner)
+			restHandler := NewRestHandler(agentService)
 
 			if testCase.isAlreadyRunning {
-				_ = agentService.Start()
+				httpRequestStart := httptest.NewRequest(http.MethodPost, ApiPathStart, nil)
+				recStart := httptest.NewRecorder()
+				restHandler.StartAgent(recStart, httpRequestStart)
+				time.Sleep(100 * time.Millisecond)
 				defer agentService.Stop()
 			}
-			restHandler := NewRestHandler(agentService)
 
 			httpRequest := httptest.NewRequest(http.MethodPost, ApiPathStart, nil)
 			responseRecorder := httptest.NewRecorder()
@@ -199,12 +206,15 @@ func TestRequestStop(t *testing.T) {
 			testLogger := newTestLogger()
 			agentRunner := newTestRunner(testLogger)
 			agentService := NewAgentService(testLogger, agentRunner)
+			restHandler := NewRestHandler(agentService)
 
 			if !testCase.isAlreadyStopped {
-				_ = agentService.Start()
+				httpRequestStart := httptest.NewRequest(http.MethodPost, ApiPathStart, nil)
+				recStart := httptest.NewRecorder()
+				restHandler.StartAgent(recStart, httpRequestStart)
+				time.Sleep(100 * time.Millisecond)
 				defer agentService.Stop()
 			}
-			restHandler := NewRestHandler(agentService)
 
 			httpRequest := httptest.NewRequest(http.MethodPost, ApiPathStop, nil)
 			responseRecorder := httptest.NewRecorder()
@@ -267,12 +277,15 @@ func TestRequestMetrics(t *testing.T) {
 				agentRunner.Storage = nil
 			}
 			agentService := NewAgentService(testLogger, agentRunner)
+			restHandler := NewRestHandler(agentService)
 
 			if testCase.startServiceBefore {
-				_ = agentService.Start()
+				httpRequestStart := httptest.NewRequest(http.MethodPost, ApiPathStart, nil)
+				recStart := httptest.NewRecorder()
+				restHandler.StartAgent(recStart, httpRequestStart)
+				time.Sleep(100 * time.Millisecond)
 				defer agentService.Stop()
 			}
-			restHandler := NewRestHandler(agentService)
 
 			httpRequest := httptest.NewRequest(http.MethodGet, ApiPathMetrics, nil)
 			responseRecorder := httptest.NewRecorder()

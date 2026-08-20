@@ -50,8 +50,27 @@ jobs:
       - name: Run golangci-lint
         uses: golangci/golangci-lint-action@v6
 
-  test:
-    name: Tests (${{ matrix.os }})
+  unit-tests:
+    name: Unit Tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Run Unit Tests
+        run: go test -v -race -tags="unit" ./...
+
+  api-tests:
+    name: API Tests (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -72,11 +91,24 @@ jobs:
       - name: Generate Swagger Docs
         run: swag init -g cmd/monitor-agent/main.go --parseDependency --parseInternal
 
-      - name: Run Unit Tests
-        run: go test -v -race -tags="unit" ./...
+      - name: Run API Tests
+        run: go test -v -race -tags="api" ./...
+
+  integration-tests:
+    name: Integration Tests (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
 
       - name: Run Integration Tests
         run: go test -v -race -tags="integration" ./...
-
-      - name: Run API Tests
-        run: go test -v -race -tags="api" ./...

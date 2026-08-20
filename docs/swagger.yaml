@@ -243,33 +243,33 @@ definitions:
     type: object
   monitoring-system_internal_software.CompleteSoftwareInformation:
     properties:
-      installedApplications:
+      installed_applications:
         items:
           $ref: '#/definitions/monitoring-system_internal_software_applications.ApplicationInformation'
         type: array
-      networkAdapters:
+      network_adapters:
         items:
           $ref: '#/definitions/monitoring-system_internal_software_network.NetworkAdapterInformation'
         type: array
-      operatingSystem:
+      operating_system:
         $ref: '#/definitions/monitoring-system_internal_software_operating_system.OperatingSystemInformation'
-      scheduledTasks:
+      scheduled_tasks:
         items:
           $ref: '#/definitions/monitoring-system_internal_software_tasks.ScheduledTaskInformation'
         type: array
-      startupCommands:
+      startup_commands:
         items:
           $ref: '#/definitions/monitoring-system_internal_software_startup.StartupCommandInformation'
         type: array
-      systemDrivers:
+      system_drivers:
         items:
           $ref: '#/definitions/monitoring-system_internal_software_drivers.DriverInformation'
         type: array
-      systemServices:
+      system_services:
         items:
           $ref: '#/definitions/monitoring-system_internal_software_services.ServiceInformation'
         type: array
-      systemUpdates:
+      system_updates:
         items:
           $ref: '#/definitions/monitoring-system_internal_software_updates.SystemUpdateInformation'
         type: array

@@ -14,82 +14,69 @@ import (
 
 // Collect gathers complete system metrics by running hardware, software, and system aggregators concurrently.
 func Collect(ctx context.Context, timeout time.Duration) (Metrics, error) {
-	_, cancel := context.WithTimeout(ctx, timeout)
+	ctx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
 	var hwInfo hardware.CompleteHardwareInformation
 	var swInfo software.CompleteSoftwareInformation
 	var sysInfo system.CompleteSystemInformation
+
 	var wg sync.WaitGroup
-	var mu sync.Mutex
-	var firstErr error
 
-	setError := func(err error) {
-		if err != nil {
-			mu.Lock()
-			if firstErr == nil {
-				firstErr = err
-			}
-			mu.Unlock()
-		}
-	}
-
-	// 1. Collect all hardware information concurrently
+	// 1. Hardware - pass context with Trace ID
 	wg.Add(1)
-	go func() {
+	go func(ctx context.Context) {
 		defer wg.Done()
-		res, err := hardware.CollectAllHardwareInformation()
+		res, err := hardware.CollectAllHardwareInformation(ctx)
 		if err != nil {
-			slog.Error("Failed to collect hardware information in metrics collector", slog.String("error", err.Error()))
-			setError(fmt.Errorf("hardware collection error: %w", err))
+			slog.ErrorContext(ctx, "Hardware aggregation returned error", slog.String("error", err.Error()))
 			return
 		}
-		mu.Lock()
 		hwInfo = res
-		mu.Unlock()
-	}()
+	}(ctx)
 
-	// 2. Collect all software information concurrently
+	// 2. Software - pass context with Trace ID
 	wg.Add(1)
-	go func() {
+	go func(ctx context.Context) {
 		defer wg.Done()
-		res, err := software.CollectAllSoftwareInformation()
+		res, err := software.CollectAllSoftwareInformation(ctx)
 		if err != nil {
-			slog.Error("Failed to collect software information in metrics collector", slog.String("error", err.Error()))
-			setError(fmt.Errorf("software collection error: %w", err))
+			slog.ErrorContext(ctx, "Software aggregation returned error", slog.String("error", err.Error()))
 			return
 		}
-		mu.Lock()
 		swInfo = res
-		mu.Unlock()
-	}()
+	}(ctx)
 
-	// 3. Collect all system information concurrently
+	// 3. System - pass context with Trace ID
 	wg.Add(1)
-	go func() {
+	go func(ctx context.Context) {
 		defer wg.Done()
-		res, err := system.CollectAllSystemInformation()
+		res, err := system.CollectAllSystemInformation(ctx)
 		if err != nil {
-			slog.Error("Failed to collect system information in metrics collector", slog.String("error", err.Error()))
-			setError(fmt.Errorf("system collection error: %w", err))
+			slog.ErrorContext(ctx, "System aggregation returned error", slog.String("error", err.Error()))
 			return
 		}
-		mu.Lock()
 		sysInfo = res
-		mu.Unlock()
+	}(ctx)
+
+	done := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(done)
 	}()
 
-	// Wait for all hardware, software, and system aggregations to complete
-	wg.Wait()
+	select {
+	case <-done:
+		slog.InfoContext(ctx, "Successfully collected all metrics within timeout limit")
+		return Metrics{
+			Timestamp: time.Now().UTC(),
+			Hardware:  hwInfo,
+			Software:  swInfo,
+			System:    sysInfo,
+		}, nil
 
-	if firstErr != nil {
-		return Metrics{}, firstErr
+	case <-ctx.Done():
+		slog.ErrorContext(ctx, "Metrics collection timed out", slog.Duration("timeout", timeout))
+		return Metrics{}, fmt.Errorf("metrics collection timed out after %s: %w", timeout, ctx.Err())
 	}
-
-	return Metrics{
-		Timestamp: time.Now().UTC(),
-		Hardware:  hwInfo,
-		Software:  swInfo,
-		System:    sysInfo,
-	}, nil
 }

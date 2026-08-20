@@ -3,11 +3,14 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"sync"
 	"time"
 )
 
 type RestHandler struct {
-	as *AgentService
+	as        *AgentService
+	startTime time.Time
+	mu        sync.RWMutex
 }
 
 func NewRestHandler(as *AgentService) *RestHandler {
@@ -29,16 +32,20 @@ func (rh *RestHandler) HealthCheck(res http.ResponseWriter, req *http.Request) {
 	statusStr := "stopped"
 	relAction := "start"
 	targetHref := ApiPathStart
+	uptime := "0s"
 
-	if running {
+	rh.mu.RLock()
+	if running && !rh.startTime.IsZero() {
 		statusStr = "running"
 		relAction = "stop"
 		targetHref = ApiPathStop
+		uptime = time.Since(rh.startTime).Truncate(time.Second).String()
 	}
+	rh.mu.RUnlock()
 
 	resp := HealthResponse{
 		Status:    statusStr,
-		Uptime:    "active",
+		Uptime:    uptime,
 		Timestamp: time.Now().UTC(),
 		ResponseEnvelope: ResponseEnvelope{
 			Links: []Link{
@@ -80,6 +87,11 @@ func (rh *RestHandler) StartAgent(res http.ResponseWriter, req *http.Request) {
 		})
 		return
 	}
+
+	// Ustawienie nowego czasu startu po pomyślnym uruchomieniu
+	rh.mu.Lock()
+	rh.startTime = time.Now()
+	rh.mu.Unlock()
 
 	resp := AgentActionResponse{
 		Message:   "agent started successfully",
@@ -123,6 +135,11 @@ func (rh *RestHandler) StopAgent(res http.ResponseWriter, req *http.Request) {
 		})
 		return
 	}
+
+	// Zerowanie czasu po zatrzymaniu
+	rh.mu.Lock()
+	rh.startTime = time.Time{}
+	rh.mu.Unlock()
 
 	resp := AgentActionResponse{
 		Message:   "agent stopped successfully",
