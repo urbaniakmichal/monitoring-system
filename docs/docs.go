@@ -516,46 +516,46 @@ const docTemplate = `{
         "monitoring-system_internal_software.CompleteSoftwareInformation": {
             "type": "object",
             "properties": {
-                "installedApplications": {
+                "installed_applications": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/monitoring-system_internal_software_applications.ApplicationInformation"
                     }
                 },
-                "networkAdapters": {
+                "network_adapters": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/monitoring-system_internal_software_network.NetworkAdapterInformation"
                     }
                 },
-                "operatingSystem": {
+                "operating_system": {
                     "$ref": "#/definitions/monitoring-system_internal_software_operating_system.OperatingSystemInformation"
                 },
-                "scheduledTasks": {
+                "scheduled_tasks": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/monitoring-system_internal_software_tasks.ScheduledTaskInformation"
                     }
                 },
-                "startupCommands": {
+                "startup_commands": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/monitoring-system_internal_software_startup.StartupCommandInformation"
                     }
                 },
-                "systemDrivers": {
+                "system_drivers": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/monitoring-system_internal_software_drivers.DriverInformation"
                     }
                 },
-                "systemServices": {
+                "system_services": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/monitoring-system_internal_software_services.ServiceInformation"
                     }
                 },
-                "systemUpdates": {
+                "system_updates": {
                     "type": "array",
                     "items": {
                         "$ref": "#/definitions/monitoring-system_internal_software_updates.SystemUpdateInformation"

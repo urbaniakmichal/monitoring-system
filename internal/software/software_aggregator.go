@@ -1,7 +1,7 @@
 package software
 
 import (
-	"fmt"
+	"context"
 	"log/slog"
 	"sync"
 
@@ -16,43 +16,36 @@ import (
 )
 
 type CompleteSoftwareInformation struct {
-	OperatingSystem       operatingSystem.OperatingSystemInformation
-	SystemUpdates         []updates.SystemUpdateInformation
-	SystemDrivers         []drivers.DriverInformation
-	NetworkAdapters       []network.NetworkAdapterInformation
-	InstalledApplications []applications.ApplicationInformation
-	SystemServices        []services.ServiceInformation
-	StartupCommands       []startup.StartupCommandInformation
-	ScheduledTasks        []tasks.ScheduledTaskInformation
+	OperatingSystem       operatingSystem.OperatingSystemInformation `json:"operating_system"`
+	SystemUpdates         []updates.SystemUpdateInformation          `json:"system_updates"`
+	SystemDrivers         []drivers.DriverInformation                `json:"system_drivers"`
+	NetworkAdapters       []network.NetworkAdapterInformation        `json:"network_adapters"`
+	InstalledApplications []applications.ApplicationInformation      `json:"installed_applications"`
+	SystemServices        []services.ServiceInformation              `json:"system_services"`
+	StartupCommands       []startup.StartupCommandInformation        `json:"startup_commands"`
+	ScheduledTasks        []tasks.ScheduledTaskInformation           `json:"scheduled_tasks"`
 }
 
-func CollectAllSoftwareInformation() (CompleteSoftwareInformation, error) {
+func CollectAllSoftwareInformation(ctx context.Context) (CompleteSoftwareInformation, error) {
 	var info CompleteSoftwareInformation
 	var wg sync.WaitGroup
 	var mu sync.Mutex
-	var firstErr error
 
-	setError := func(err error) {
-		if err != nil {
-			mu.Lock()
-			if firstErr == nil {
-				firstErr = err
-			}
-			mu.Unlock()
-		}
+	logError := func(section string, err error) {
+		slog.ErrorContext(ctx, "Failed to collect software section",
+			slog.String("section", section),
+			slog.String("error_details", err.Error()),
+		)
 	}
 
 	// 1. Operating system
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-
-		operating_system := &operatingSystem.SoftwareOperatingSystem{};
-		res, err := operating_system.RetrieveOperatingSystemInformation()
-
+		osImpl := &operatingSystem.SoftwareOperatingSystem{}
+		res, err := osImpl.RetrieveOperatingSystemInformation()
 		if err != nil {
-			slog.Error("Failed to collect operating system info during aggregation", slog.String("error_details", err.Error()))
-			setError(fmt.Errorf("failed to collect operating system info: %w", err))
+			logError("operating_system", err)
 			return
 		}
 		mu.Lock()
@@ -64,13 +57,10 @@ func CollectAllSoftwareInformation() (CompleteSoftwareInformation, error) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-
-		updates := &updates.SoftwareUpdates{}
-		res, err := updates.RetrieveSystemUpdates()
-
+		updatesImpl := &updates.SoftwareUpdates{}
+		res, err := updatesImpl.RetrieveSystemUpdates()
 		if err != nil {
-			slog.Error("Failed to collect system updates during aggregation", slog.String("error_details", err.Error()))
-			setError(fmt.Errorf("failed to collect system updates: %w", err))
+			logError("system_updates", err)
 			return
 		}
 		mu.Lock()
@@ -82,13 +72,10 @@ func CollectAllSoftwareInformation() (CompleteSoftwareInformation, error) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-
-		drivers := &drivers.SoftwareDrivers{}
-		res, err := drivers.RetrieveInstalledDrivers()
-
+		driversImpl := &drivers.SoftwareDrivers{}
+		res, err := driversImpl.RetrieveInstalledDrivers()
 		if err != nil {
-			slog.Error("Failed to collect system drivers during aggregation", slog.String("error_details", err.Error()))
-			setError(fmt.Errorf("failed to collect system drivers: %w", err))
+			logError("system_drivers", err)
 			return
 		}
 		mu.Lock()
@@ -100,13 +87,10 @@ func CollectAllSoftwareInformation() (CompleteSoftwareInformation, error) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-
-		networks := &network.SoftwareNetworks{};
-		res, err := networks.RetrieveActiveNetworkAdapters()
-
+		networksImpl := &network.SoftwareNetworks{}
+		res, err := networksImpl.RetrieveActiveNetworkAdapters()
 		if err != nil {
-			slog.Error("Failed to collect network adapters during aggregation", slog.String("error_details", err.Error()))
-			setError(fmt.Errorf("failed to collect network adapters: %w", err))
+			logError("network_adapters", err)
 			return
 		}
 		mu.Lock()
@@ -118,13 +102,10 @@ func CollectAllSoftwareInformation() (CompleteSoftwareInformation, error) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-
-		os := &applications.SoftwareApplications{}
-		res, err := os.RetrieveInstalledApplications()
-
+		appsImpl := &applications.SoftwareApplications{}
+		res, err := appsImpl.RetrieveInstalledApplications()
 		if err != nil {
-			slog.Error("Failed to collect installed applications during aggregation", slog.String("error_details", err.Error()))
-			setError(fmt.Errorf("failed to collect installed applications: %w", err))
+			logError("installed_applications", err)
 			return
 		}
 		mu.Lock()
@@ -136,13 +117,10 @@ func CollectAllSoftwareInformation() (CompleteSoftwareInformation, error) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-
-		services := &services.SoftwareServices{}
-		res, err := services.RetrieveSystemServices()
-
+		servicesImpl := &services.SoftwareServices{}
+		res, err := servicesImpl.RetrieveSystemServices()
 		if err != nil {
-			slog.Error("Failed to collect system services during aggregation", slog.String("error_details", err.Error()))
-			setError(fmt.Errorf("failed to collect system services: %w", err))
+			logError("system_services", err)
 			return
 		}
 		mu.Lock()
@@ -154,13 +132,10 @@ func CollectAllSoftwareInformation() (CompleteSoftwareInformation, error) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-
-		startup := &startup.SoftwareStartup{}
-		res, err := startup.RetrieveStartupCommands()
-
+		startupImpl := &startup.SoftwareStartup{}
+		res, err := startupImpl.RetrieveStartupCommands()
 		if err != nil {
-			slog.Error("Failed to collect startup commands during aggregation", slog.String("error_details", err.Error()))
-			setError(fmt.Errorf("failed to collect startup commands: %w", err))
+			logError("startup_commands", err)
 			return
 		}
 		mu.Lock()
@@ -172,13 +147,10 @@ func CollectAllSoftwareInformation() (CompleteSoftwareInformation, error) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-
-		tasks := & tasks.SoftwareTasks{}
-		res, err := tasks.RetrieveScheduledTasks()
-
+		tasksImpl := &tasks.SoftwareTasks{}
+		res, err := tasksImpl.RetrieveScheduledTasks()
 		if err != nil {
-			slog.Error("Failed to collect scheduled tasks during aggregation", slog.String("error_details", err.Error()))
-			setError(fmt.Errorf("failed to collect scheduled tasks: %w", err))
+			logError("scheduled_tasks", err)
 			return
 		}
 		mu.Lock()
@@ -186,13 +158,7 @@ func CollectAllSoftwareInformation() (CompleteSoftwareInformation, error) {
 		mu.Unlock()
 	}()
 
-	// Wait for all goroutines to complete
 	wg.Wait()
-
-	if firstErr != nil {
-		return CompleteSoftwareInformation{}, firstErr
-	}
-
-	slog.Info("Successfully collected all software and system environment information concurrently")
+	slog.InfoContext(ctx, "Successfully collected software information")
 	return info, nil
 }

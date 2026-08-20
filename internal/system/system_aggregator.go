@@ -1,48 +1,41 @@
 package system
 
 import (
-	"fmt"
+	"context"
 	"log/slog"
 	"sync"
 
 	"monitoring-system/internal/system/load"
-	system "monitoring-system/internal/system/os"
+	systemOS "monitoring-system/internal/system/os"
 	"monitoring-system/internal/system/users"
 )
 
 type CompleteSystemInformation struct {
-	System system.SystemInformation `json:"system"`
-	Load   load.LoadInformation     `json:"load"`
-	Users  []users.UserInformation  `json:"users"`
+	System systemOS.SystemInformation `json:"system"`
+	Load   load.LoadInformation       `json:"load"`
+	Users  []users.UserInformation    `json:"users"`
 }
 
-func CollectAllSystemInformation() (CompleteSystemInformation, error) {
+func CollectAllSystemInformation(ctx context.Context) (CompleteSystemInformation, error) {
 	var info CompleteSystemInformation
 	var wg sync.WaitGroup
 	var mu sync.Mutex
-	var firstErr error
 
-	setError := func(err error) {
-		if err != nil {
-			mu.Lock()
-			if firstErr == nil {
-				firstErr = err
-			}
-			mu.Unlock()
-		}
+	logError := func(section string, err error) {
+		slog.ErrorContext(ctx, "Failed to collect system section",
+			slog.String("section", section),
+			slog.String("error_details", err.Error()),
+		)
 	}
 
-	// 1. System general info (hostname, OS, uptime, top processes)
+	// 1. System general info
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-
-		system := system.SystemOsInfo{}
-		res, err := system.RetrieveSystemInfo()
-
+		sysImpl := systemOS.SystemOsInfo{}
+		res, err := sysImpl.RetrieveSystemInfo()
 		if err != nil {
-			slog.Error("Failed to collect system info during aggregation", slog.String("error_details", err.Error()))
-			setError(fmt.Errorf("failed to collect system info: %w", err))
+			logError("system_os", err)
 			return
 		}
 		mu.Lock()
@@ -50,17 +43,14 @@ func CollectAllSystemInformation() (CompleteSystemInformation, error) {
 		mu.Unlock()
 	}()
 
-	// 2. System load averages (load1, load5, load15)
+	// 2. System load averages
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-
-		load := load.Load{}
-		res, err := load.RetrieveLoadInfo()
-
+		loadImpl := load.Load{}
+		res, err := loadImpl.RetrieveLoadInfo()
 		if err != nil {
-			slog.Error("Failed to collect load info during aggregation", slog.String("error_details", err.Error()))
-			setError(fmt.Errorf("failed to collect load info: %w", err))
+			logError("system_load", err)
 			return
 		}
 		mu.Lock()
@@ -72,13 +62,10 @@ func CollectAllSystemInformation() (CompleteSystemInformation, error) {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-
-		users := users.SystemUsers{}
-		res, err := users.RetrieveUsersInfo()
-
+		usersImpl := users.SystemUsers{}
+		res, err := usersImpl.RetrieveUsersInfo()
 		if err != nil {
-			slog.Error("Failed to collect users info during aggregation", slog.String("error_details", err.Error()))
-			setError(fmt.Errorf("failed to collect users info: %w", err))
+			logError("system_users", err)
 			return
 		}
 		mu.Lock()
@@ -86,13 +73,7 @@ func CollectAllSystemInformation() (CompleteSystemInformation, error) {
 		mu.Unlock()
 	}()
 
-	// Wait for all goroutines to complete
 	wg.Wait()
-
-	if firstErr != nil {
-		return CompleteSystemInformation{}, firstErr
-	}
-
-	slog.Info("Successfully collected all system metrics and environment info concurrently")
+	slog.InfoContext(ctx, "Successfully collected all system metrics")
 	return info, nil
 }
