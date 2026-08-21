@@ -76,6 +76,7 @@ func TestRequestHealthCheck(t *testing.T) {
 			responseRecorder := httptest.NewRecorder()
 
 			restHandler.HealthCheck(responseRecorder, httpRequest)
+			AssertResponseMatchesOpenAPI(t, httpRequest, responseRecorder)
 			httpResponse := responseRecorder.Result()
 			defer httpResponse.Body.Close()
 
@@ -149,6 +150,7 @@ func TestRequestStart(t *testing.T) {
 			responseRecorder := httptest.NewRecorder()
 
 			restHandler.StartAgent(responseRecorder, httpRequest)
+			AssertResponseMatchesOpenAPI(t, httpRequest, responseRecorder)
 			httpResponse := responseRecorder.Result()
 			defer httpResponse.Body.Close()
 
@@ -220,6 +222,7 @@ func TestRequestStop(t *testing.T) {
 			responseRecorder := httptest.NewRecorder()
 
 			restHandler.StopAgent(responseRecorder, httpRequest)
+			AssertResponseMatchesOpenAPI(t, httpRequest, responseRecorder)
 			httpResponse := responseRecorder.Result()
 			defer httpResponse.Body.Close()
 
@@ -291,6 +294,7 @@ func TestRequestMetrics(t *testing.T) {
 			responseRecorder := httptest.NewRecorder()
 
 			restHandler.Metrics(responseRecorder, httpRequest)
+			AssertResponseMatchesOpenAPI(t, httpRequest, responseRecorder)
 			httpResponse := responseRecorder.Result()
 			defer httpResponse.Body.Close()
 
