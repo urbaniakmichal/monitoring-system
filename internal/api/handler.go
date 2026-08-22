@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"sync"
 	"time"
@@ -77,8 +78,6 @@ func (rh *RestHandler) HealthCheck(res http.ResponseWriter, req *http.Request) {
 // @Failure      400  {object}  AgentActionResponse
 // @Router       /api/v1/agent/start [post]
 func (rh *RestHandler) StartAgent(res http.ResponseWriter, req *http.Request) {
-	res.Header().Set("Content-Type", "application/json")
-
 	if err := rh.as.Start(); err != nil {
 		res.WriteHeader(http.StatusBadRequest)
 		_ = json.NewEncoder(res).Encode(AgentActionResponse{
@@ -88,7 +87,7 @@ func (rh *RestHandler) StartAgent(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// Ustawienie nowego czasu startu po pomyślnym uruchomieniu
+	// Set new time after run app
 	rh.mu.Lock()
 	rh.startTime = time.Now()
 	rh.mu.Unlock()
@@ -112,6 +111,7 @@ func (rh *RestHandler) StartAgent(res http.ResponseWriter, req *http.Request) {
 		},
 	}
 
+	res.Header().Set("Content-Type", "application/json")
 	res.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(res).Encode(resp)
 }
@@ -125,8 +125,6 @@ func (rh *RestHandler) StartAgent(res http.ResponseWriter, req *http.Request) {
 // @Failure      400  {object}  AgentActionResponse
 // @Router       /api/v1/agent/stop [post]
 func (rh *RestHandler) StopAgent(res http.ResponseWriter, req *http.Request) {
-	res.Header().Set("Content-Type", "application/json")
-
 	if err := rh.as.Stop(); err != nil {
 		res.WriteHeader(http.StatusBadRequest)
 		_ = json.NewEncoder(res).Encode(AgentActionResponse{
@@ -136,7 +134,7 @@ func (rh *RestHandler) StopAgent(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// Zerowanie czasu po zatrzymaniu
+	// Clean time after app stop
 	rh.mu.Lock()
 	rh.startTime = time.Time{}
 	rh.mu.Unlock()
@@ -155,6 +153,7 @@ func (rh *RestHandler) StopAgent(res http.ResponseWriter, req *http.Request) {
 		},
 	}
 
+	res.Header().Set("Content-Type", "application/json")
 	res.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(res).Encode(resp)
 }
@@ -168,8 +167,6 @@ func (rh *RestHandler) StopAgent(res http.ResponseWriter, req *http.Request) {
 // @Failure      500  {object}  AgentActionResponse
 // @Router       /api/v1/agent/metrics [get]
 func (rh *RestHandler) Metrics(res http.ResponseWriter, req *http.Request) {
-	res.Header().Set("Content-Type", "application/json")
-
 	metricsData, err := rh.as.Metrics()
 	if err != nil {
 		res.WriteHeader(http.StatusInternalServerError)
@@ -200,6 +197,7 @@ func (rh *RestHandler) Metrics(res http.ResponseWriter, req *http.Request) {
 		},
 	}
 
+	res.Header().Set("Content-Type", "application/json")
 	res.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(res).Encode(resp)
 }
@@ -208,14 +206,12 @@ func (rh *RestHandler) Metrics(res http.ResponseWriter, req *http.Request) {
 // @Summary      Generate output file
 // @Description  Triggers report file generation by the agent.
 // @Tags         agent
-// @Produce      multipart/form-data
-// @Success      201  "Created"
-// @Failure      400  {object}  map[string]string
+// @Produce      application/json
+// @Success      200  {file}   string "report.json"
+// @Failure      400  {object} map[string]string
 // @Router       /api/v1/agent/file [get]
 func (rh *RestHandler) GenerateFile(res http.ResponseWriter, req *http.Request) {
-	res.Header().Set("Content-Type", "multipart/form-data")
-
-	err := rh.as.MakeFile()
+	fileBytes, err := rh.as.MakeFile()
 	if err != nil {
 		res.Header().Set("Content-Type", "application/json")
 		res.WriteHeader(http.StatusBadRequest)
@@ -223,5 +219,10 @@ func (rh *RestHandler) GenerateFile(res http.ResponseWriter, req *http.Request) 
 		return
 	}
 
-	res.WriteHeader(http.StatusCreated)
+	filename := fmt.Sprintf("report-%d.json", time.Now().Unix())
+	res.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", filename))
+	res.Header().Set("Content-Type", "application/json")
+	res.WriteHeader(http.StatusOK)
+
+	_, _ = res.Write(fileBytes)
 }
