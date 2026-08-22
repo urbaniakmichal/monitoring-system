@@ -2,7 +2,9 @@ package api
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"log/slog"
 	"monitoring-system/internal/metrics"
 	"monitoring-system/internal/runner"
@@ -82,7 +84,14 @@ func (s *AgentService) Metrics() ([]metrics.Metrics, error) {
 	return s.runner.Storage.GetAll(), nil
 }
 
-func (s *AgentService) MakeFile() error {
-	// todo implement later
-	return nil
+func (s *AgentService) MakeFile() ([]byte, error) {
+	s.mutex.RLock()
+	defer s.mutex.RUnlock()
+
+	data, err := json.Marshal(s.runner.Storage.GetAll())
+	if err != nil {
+		return nil, fmt.Errorf("error encoding struct into JSON: %w", err)
+	}
+
+	return data, nil
 }
