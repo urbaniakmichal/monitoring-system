@@ -436,10 +436,12 @@ paths:
     get:
       description: Triggers report file generation by the agent.
       produces:
-      - multipart/form-data
+      - application/json
       responses:
-        "201":
-          description: Created
+        "200":
+          description: report.json
+          schema:
+            type: file
         "400":
           description: Bad Request
           schema:

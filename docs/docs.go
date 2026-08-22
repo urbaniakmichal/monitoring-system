@@ -19,15 +19,18 @@ const docTemplate = `{
             "get": {
                 "description": "Triggers report file generation by the agent.",
                 "produces": [
-                    "multipart/form-data"
+                    "application/json"
                 ],
                 "tags": [
                     "agent"
                 ],
                 "summary": "Generate output file",
                 "responses": {
-                    "201": {
-                        "description": "Created"
+                    "200": {
+                        "description": "report.json",
+                        "schema": {
+                            "type": "file"
+                        }
                     },
                     "400": {
                         "description": "Bad Request",
