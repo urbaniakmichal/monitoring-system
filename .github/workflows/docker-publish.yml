@@ -1,13 +1,14 @@
-name: Build and Push Docker Image
+name: Build and Push Monitor System Image
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 env:
   REGISTRY: ghcr.io
+  IMAGE_NAME: ghcr.io/urbaniakmichal/monitor-system
 
 jobs:
   build-and-push:
