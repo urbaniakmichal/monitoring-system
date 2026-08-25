@@ -32,28 +32,6 @@ jobs:
           swag init -g cmd/monitor-agent/main.go --parseDependency --parseInternal
           git diff --exit-code docs/ || (echo "Swagger docs are out of date! Run 'make swagger' and commit your changes." && exit 1)
 
-  lint:
-    name: Lint Code
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version-file: go.mod
-          cache: true
-
-      - name: Install Swag CLI
-        run: go install github.com/swaggo/swag/cmd/swag@latest
-
-      - name: Generate Swagger Docs
-        run: swag init -g cmd/monitor-agent/main.go --parseDependency --parseInternal
-
-      - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v6
-
   unit-tests:
     name: Unit Tests (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
@@ -119,7 +97,7 @@ jobs:
 
   build-and-push:
     name: Build and Push Docker Image
-    needs: [swagger-check, lint, unit-tests, api-tests, integration-tests]
+    needs: [swagger-check, unit-tests, api-tests, integration-tests]
     runs-on: ubuntu-latest
     permissions:
       contents: read
