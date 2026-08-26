@@ -1,10 +1,14 @@
 package runner
 
 import (
+	"bytes"
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
 	"log/slog"
+	"net/http"
+	"os"
 	"time"
 
 	"monitoring-system/internal/config"
@@ -64,7 +68,9 @@ func (r *Runner) collect(ctx context.Context, logger *slog.Logger) {
 	// 3. Pass enriched context to the metrics collector
 	data, err := metrics.Collect(reqCtx, r.Config.Timeout)
 	if err != nil {
-		reqLogger.ErrorContext(reqCtx, "failed to collect metrics", slog.String("error", err.Error()))
+		errMsg := "failed to collect metrics: " + err.Error()
+		reqLogger.ErrorContext(reqCtx, errMsg, slog.String("error", err.Error()))
+		sendToElastic("ERROR", errMsg, traceID)
 		return
 	}
 
@@ -84,12 +90,14 @@ func (r *Runner) collect(ctx context.Context, logger *slog.Logger) {
 		hostname = "unknown"
 	}
 
+	msg := "metrics collected successfully"
 	reqLogger.InfoContext(
 		reqCtx,
-		"metrics collected successfully",
+		msg,
 		slog.Time("timestamp", data.Timestamp),
 		slog.String("hostname", hostname),
 	)
+	sendToElastic("INFO", msg, traceID)
 }
 
 func generateTraceID() string {
@@ -98,4 +106,27 @@ func generateTraceID() string {
 		return "00000000000000000000000000000000"
 	}
 	return hex.EncodeToString(bytes)
+}
+
+func sendToElastic(level, message, traceID string) {
+	esURL := os.Getenv("ELASTICSEARCH_URL")
+	if esURL == "" {
+		return
+	}
+
+	payload, err := json.Marshal(map[string]interface{}{
+		"@timestamp": time.Now().UTC(),
+		"level":      level,
+		"message":    message,
+		"trace_id":   traceID,
+		"service":    "monitor-system",
+	})
+	if err != nil {
+		return
+	}
+
+	go func() {
+		client := &http.Client{Timeout: 2 * time.Second}
+		_, _ = client.Post(esURL+"/monitor-system-logs/_doc", "application/json", bytes.NewBuffer(payload))
+	}()
 }
