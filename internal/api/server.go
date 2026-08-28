@@ -7,6 +7,7 @@ import (
 	"monitoring-system/internal/runner"
 	"net/http"
 
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
@@ -20,6 +21,7 @@ func NewServer(log *slog.Logger, run *runner.Runner, cfg config.ServerConfig) *h
 	mux.HandleFunc("POST "+ApiPathStop, restHandler.StopAgent)
 	mux.HandleFunc("GET "+ApiPathFile, restHandler.GenerateFile)
 	mux.HandleFunc("GET "+ApiPathMetrics, restHandler.Metrics)
+	mux.Handle("/metrics", promhttp.Handler())
 
 	mux.HandleFunc("/swagger/", httpSwagger.WrapHandler)
 
